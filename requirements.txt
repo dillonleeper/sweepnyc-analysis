@@ -1,0 +1,9 @@
+pandas>=2.2
+requests>=2.32
+pyarrow>=17.0
+geopandas>=1.0
+shapely>=2.0
+python-dotenv>=1.0
+jupyter>=1.0
+matplotlib>=3.9
+statsmodels>=0.14
