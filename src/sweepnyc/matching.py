@@ -8,7 +8,11 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-DIRECTIONALS = {"NORTH": "N", "SOUTH": "S", "EAST": "E", "WEST": "W"}\n\nSTREET_SUFFIXES = {
+DIRECTIONALS = {"NORTH": "N", "SOUTH": "S", "EAST": "E", "WEST": "W"}
+
+STREET_SUFFIXES = {
+    "SQUARE": "SQ",
+    "SQ": "SQ",
     "STREET": "ST",
     "ST": "ST",
     "AVENUE": "AVE",
@@ -50,8 +54,8 @@ def normalize_street(value: str | None) -> str:
     value = value.upper().replace("&", " AND ")
     value = re.sub(r"[^A-Z0-9 ]+", " ", value)
     tokens = [t for t in re.split(r"\s+", value.strip()) if t]
-    if tokens and tokens[-1] in STREET_SUFFIXES:
-        tokens[-1] = STREET_SUFFIXES[tokens[-1]]
+    tokens = [DIRECTIONALS.get(t, re.sub(r"^(\d+)(ST|ND|RD|TH)$", r"\1", t)) for t in tokens]
+    tokens = [STREET_SUFFIXES.get(t, t) for t in tokens]
     return " ".join(tokens)
 
 
@@ -78,7 +82,7 @@ def _same_shape_between(house: tuple[int, ...], low: tuple[int, ...] | None, hig
         return False
     if len(house) != len(low) or len(house) != len(high):
         return False
-    return low <= house <= high
+    return min(low, high) <= house <= max(low, high)
 
 
 def _parity_match(house: tuple[int, ...], low: tuple[int, ...] | None, high: tuple[int, ...] | None) -> bool:
@@ -128,7 +132,8 @@ def match_oath_to_cscl(oath: dict, cscl_rows: Iterable[dict]) -> MatchResult:
 
     physical_ids = sorted({str(r.get("physicalid")) for r in ranged if r.get("physicalid") is not None})
     if len(physical_ids) == 1:
-        return MatchResult(physical_ids[0], "exact", "street_house_range", 1)
+        quality = "high_confidence" if re.search(r"[A-Za-z]", str(oath.get("violation_location_house", ""))) else "exact"
+        return MatchResult(physical_ids[0], quality, "street_house_range", 1)
     if len(physical_ids) > 1:
         return MatchResult(None, "ambiguous", "multiple_house_range_segments", len(physical_ids))
 
@@ -136,7 +141,7 @@ def match_oath_to_cscl(oath: dict, cscl_rows: Iterable[dict]) -> MatchResult:
     # to force a segment assignment without a house-range match.
     name_ids = sorted({str(r.get("physicalid")) for r in name_matches if r.get("physicalid") is not None})
     if len(name_ids) == 1:
-        return MatchResult(name_ids[0], "high_confidence", "unique_street_zip_fallback", 1)
+        return MatchResult(None, "unmatched", "street_match_no_house_range", 1)
     if len(name_ids) > 1:
         return MatchResult(None, "ambiguous", "street_match_no_house_range", len(name_ids))
     return MatchResult(None, "unmatched", "no_street_match", 0)

@@ -22,7 +22,7 @@ The initial go/no-go target is **at least 80% high-confidence matches** for the 
 | --- | --- | --- |
 | SweepNYC Street Cleaning | Treatment: documented mechanical-sweeper visits by street segment/day | `c23c-uwsm` |
 | DSNY Sanitation OATH Database | Enforcement-observed sanitation conditions | `r78k-82m3` |
-| NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `3mf9-qshr` |
+| NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `inkn-q76z` (table; map: `3mf9-qshr`) |
 | NYC Address Points | Address/location bridge to street segments | `6xyb-j5pk` |
 | 311 Service Requests | Citizen-reported cleanliness signal | added after Phase 1 |
 
@@ -108,3 +108,27 @@ python scripts/inspect_sources.py
 ## License
 
 MIT.
+
+## Run the Manhattan pilot
+
+```powershell
+.venv/Scripts/python.exe -m pip install -r requirements.txt pytest
+$env:PYTHONPATH = "src"
+.venv/Scripts/python.exe -m pytest -q
+.venv/Scripts/python.exe scripts/run_match_pilot.py
+# Reproduce matching from the saved, checksummed extracts without network access:
+.venv/Scripts/python.exe scripts/run_match_pilot.py --replay
+```
+
+On other platforms, use `python` in the activated environment and `PYTHONPATH=src` for tests.
+The default interval is August 1 inclusive through September 1 exclusive, 2026.
+`PILOT_START` and `PILOT_END` override it; only Manhattan is supported currently.
+An empty eligible sample produces a null rate and no threshold decision, not a 0% rate.
+
+Raw extracts, source schemas, and a query/checksum manifest are saved in
+`data/raw/pilot/`. Results and their manifest are saved in `data/processed/pilot/`.
+These directories are ignored by Git. Aggregate observed results are recorded in
+[the pilot report](docs/pilot-results-2026-08.md). `requirements-observed.txt`
+records the exact installed Windows/Python 3.12 environment; use the general
+requirements file on other platforms (the snapshot includes Windows-only packages).
+Live sources can change; use the saved extracts for exact reproduction.
