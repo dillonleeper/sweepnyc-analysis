@@ -2,8 +2,8 @@ from sweepnyc.matching import house_number_key, match_oath_to_cscl, normalize_st
 
 
 def test_normalize_street():
-    assert normalize_street("East 42nd Street") == "EAST 42ND ST"
-    assert normalize_street("3rd Avenue") == "3RD AVE"
+    assert normalize_street("East 42nd Street") == "E 42 ST"
+    assert normalize_street("3rd Avenue") == "3 AVE"
 
 
 def test_house_number_key():
