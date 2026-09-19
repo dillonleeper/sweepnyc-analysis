@@ -34,7 +34,7 @@ CLEANLINESS_TERMS = (
     "DIRTY SIDEWALK",
     "DIRTY AREA",
     "18 INCH",
-    "18"",
+    '18"',
     "EIGHTEEN INCH",
 )
 
