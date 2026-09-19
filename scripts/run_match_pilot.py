@@ -1,4 +1,4 @@
-"""Run the first Manhattan OATH -> CSCL/SweepNYC linkage pilot.
+"""Run the first Manhattan OATH -> CSCL/SweepNYC linkage pilot.\n\nThis script is intentionally a linkage-validation experiment, not an effectiveness analysis.
 
 Default pilot:
 - Borough: Manhattan
