@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-STREET_SUFFIXES = {
+DIRECTIONALS = {"NORTH": "N", "SOUTH": "S", "EAST": "E", "WEST": "W"}\n\nSTREET_SUFFIXES = {
     "STREET": "ST",
     "ST": "ST",
     "AVENUE": "AVE",
