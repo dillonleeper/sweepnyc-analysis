@@ -34,3 +34,9 @@ def test_unique_range_match():
     result = match_oath_to_cscl(oath, cscl)
     assert result.physical_id == "123"
     assert result.quality == "exact"
+
+
+def test_missing_address_is_unmatched():
+    result = match_oath_to_cscl({}, [])
+    assert result.quality == "unmatched"
+    assert result.method == "missing_address"
