@@ -82,9 +82,19 @@ context. It does not change the conclusion, since the frozen August extract
 
 LION 23C is not verified to be the exact CSCL 23C snapshot DSNY/SweepNYC use
 internally — the same open question the five-case review left unresolved.
-`docs/cscl-23c-data-request.md` remains unsent. Address-range identity was
-checked for these eight violations' four segments specifically; it was not
-re-verified for the remaining 846 present-in-LION-23C matched IDs.
+The data request in `docs/cscl-23c-data-request.md` has now been submitted
+through the NYC Open Data contact form (2026-09-20); a response was not
+expected within two weeks per that form's own acknowledgment.
+
+**Update (2026-09-20):** address-range identity for the remaining 846
+present-in-LION-23C matched IDs has since been checked (see
+`scripts/verify_lion_id_identity.py` and
+`data/processed/adjudication/lion_id_identity_summary.json`). All 846 are
+confirmed to reference the same real-world segment across vintages — no
+current-CSCL PhysicalID numerically collides with an unrelated LION-23C-era
+segment. Mere ID *presence*, which is what the case review and this
+document's resolution checked, cannot rule out that kind of collision on its
+own; this closes that gap for the full matched population.
 
 ## Reproduction
 
