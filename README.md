@@ -142,6 +142,12 @@ It also checks the entire matched population against saved address points.
 Three records have conflicting spatial evidence and two use an ID missing from the
 refreshed reference. Historical CSCL 23C alignment remains unresolved.
 
+The [follow-up case review](docs/case-review-2026-08.md) locates official LION 23C,
+checks five violations against parcels, buildings, and the public SweepNYC lookup,
+and records three corrected assignments in a separate reviewed output. Coverage
+and August sweep overlap are unchanged. LION covers 846/850 matched IDs; the exact
+DSNY CSCL snapshot and eight violations on four absent IDs remain unverified.
+
 Run `scripts/fetch_validation_sources.py` once to save current reference evidence,
 then `scripts/run_validation_audit.py` and `scripts/render_validation_maps.py`.
 Audit results live under `data/processed/validation/`; raw sources under
