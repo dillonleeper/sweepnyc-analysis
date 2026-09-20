@@ -153,3 +153,23 @@ then `scripts/run_validation_audit.py` and `scripts/render_validation_maps.py`.
 Audit results live under `data/processed/validation/`; raw sources under
 `data/raw/validation/`. The original pilot snapshot is retained. Candidate recoveries
 are review suggestions and never silently alter the original match rate.
+
+## LION-23C gap resolution
+
+The [LION-gap resolution](docs/lion-gap-resolution-2026-09.md) explains why four
+PhysicalIDs were absent from LION 23C (SweepNYC's own extract is keyed to CSCL
+version 23C; these four segments were renumbered since) and resolves the eight
+affected violations, recovering 7 real August sweep observations. Run
+`scripts/resolve_lion_gap_cases.py` after the case-review replay steps above.
+
+## Segment-level violations vs. sweep visits
+
+The [August 2026 segment analysis](docs/segment-analysis-2026-08.md) builds a
+PhysicalID-level table comparing eligible violations to recorded August sweep
+visit-days for the 851 Manhattan segments linked to at least one violation. It
+defines a visit as a distinct (segment, day) pair to avoid inflating counts from
+same-day duplicate GPS observations, and flags segments with frequent violations
+despite a recorded sweep, and segments with no recorded August observation. It
+draws no causal or citywide conclusions. Run `scripts/build_segment_table.py`
+then `scripts/render_segment_charts.py`; outputs live under
+`data/processed/segment_analysis/`.
