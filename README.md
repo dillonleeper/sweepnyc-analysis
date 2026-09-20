@@ -132,3 +132,18 @@ These directories are ignored by Git. Aggregate observed results are recorded in
 records the exact installed Windows/Python 3.12 environment; use the general
 requirements file on other platforms (the snapshot includes Windows-only packages).
 Live sources can change; use the saved extracts for exact reproduction.
+
+## Validation milestone
+
+The [September 2026 validation report](docs/validation-report-2026-08.md) audits
+100 sampled matches, all four suffixed matches, and all 106 unresolved violations.
+It also checks the entire matched population against saved address points.
+94/100 sample records are spatially corroborated; this is **not measured accuracy**.
+Three records have conflicting spatial evidence and two use an ID missing from the
+refreshed reference. Historical CSCL 23C alignment remains unresolved.
+
+Run `scripts/fetch_validation_sources.py` once to save current reference evidence,
+then `scripts/run_validation_audit.py` and `scripts/render_validation_maps.py`.
+Audit results live under `data/processed/validation/`; raw sources under
+`data/raw/validation/`. The original pilot snapshot is retained. Candidate recoveries
+are review suggestions and never silently alter the original match rate.
