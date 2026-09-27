@@ -97,6 +97,24 @@ or two violations in August; a small number carry far more.
   corroboration, not a confirmed authoritative crosswalk.
 - **99 ambiguous and 7 unmatched violations are excluded** from this table
   entirely, as in the original pilot; they carry no PhysicalID to join on.
+- **A recorded sweep is not a full clean even on its own terms.** DSNY's
+  street-sweeping fleet is overwhelmingly mechanical broom (roughly 430-450
+  vehicles citywide, per equipment-vendor and trade-press reporting), not
+  regenerative-air/vacuum equipment. Mechanical brooms are reported at
+  around 35% pickup efficiency versus 75-97% for regenerative-air units,
+  and are comparatively weaker on fine debris; they are relatively better
+  suited to the larger visible debris that OATH sanitation violations
+  typically cite. That equipment ceiling is roughly uniform across the
+  segments here (this project has not identified any regenerative-air or
+  vacuum units in DSNY's active fleet), so it does not explain
+  segment-to-segment variation in the "frequent violations despite a
+  recorded sweep" list, but it is a reason a swept segment can still carry
+  violations even when the sweep was performed and recorded correctly.
+  This figure comes from general web research on DSNY's fleet and industry
+  pickup-efficiency comparisons, not from a source this project has
+  fetched and checksummed the way `fetch_case_sources.py` does for the
+  LION/CSCL evidence above — treat it as background context, not a
+  verified project input.
 
 ## Reproduction
 

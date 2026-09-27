@@ -170,6 +170,10 @@ visit-days for the 851 Manhattan segments linked to at least one violation. It
 defines a visit as a distinct (segment, day) pair to avoid inflating counts from
 same-day duplicate GPS observations, and flags segments with frequent violations
 despite a recorded sweep, and segments with no recorded August observation. It
-draws no causal or citywide conclusions. Run `scripts/build_segment_table.py`
-then `scripts/render_segment_charts.py`; outputs live under
+draws no causal or citywide conclusions. Its Limitations section also notes
+that DSNY's fleet is overwhelmingly mechanical broom (~35% reported pickup
+efficiency vs. 75-97% for regenerative-air equipment), which is background
+context for why a swept segment can still carry violations, not a verified
+project input. Run `scripts/build_segment_table.py` then
+`scripts/render_segment_charts.py`; outputs live under
 `data/processed/segment_analysis/`.
