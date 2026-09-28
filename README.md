@@ -8,13 +8,24 @@ The core idea is to treat each recorded sweeper traversal as an observed interve
 
 ## Current status
 
-**Phase 1: data-linkage validation**
+**Phase 1: data-linkage validation — done.** 94.77% of eligible August 2026
+Manhattan violations matched to a single, unambiguous CSCL segment, clearing
+the 80% go/no-go bar. See
+[`segment-analysis-2026-08.md`](docs/segment-analysis-2026-08.md).
 
-Before doing any effectiveness analysis, the project needs to answer one basic question:
+**Phase 2: effectiveness analysis — first pass done, null result.** Built
+the segment x day event panel and ran a segment fixed-effects comparison of
+swept vs. unswept days. No statistically significant relationship found
+between a recorded sweep and same-day or next-day violation counts, on this
+one month/one borough slice. Full write-up, method, and — importantly — the
+limitations that keep this from being a final answer:
+[`phase2-effect-analysis-2026-09.md`](docs/phase2-effect-analysis-2026-09.md).
+
+The original go/no-go question for Phase 1:
 
 > Can NYC sanitation violations be reliably assigned to the same CSCL street segments used by SweepNYC?
 
-The initial go/no-go target is **at least 80% high-confidence matches** for the pilot sample. The threshold is a project decision, not a claim about the data.
+The initial go/no-go target was **at least 80% high-confidence matches** for the pilot sample. The threshold was a project decision, not a claim about the data.
 
 ## Primary data sources
 
