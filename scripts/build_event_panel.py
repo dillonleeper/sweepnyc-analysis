@@ -14,13 +14,16 @@ Columns:
   day_of_week       -- Mon..Sun, for day-of-week fixed effects
   segment_ever_swept_in_august -- 1 if the segment has >=1 recorded August visit
                                    at all (used to flag the small always-zero group)
+  complaint_311_count -- count of eligible 311 complaints (Dirty Condition,
+                         Street Sweeping Complaint) recorded on this segment
+                         on this day, matched via scripts/match_311_to_segments.py.
+                         0 for every row if matched_311.json hasn't been built yet.
 
 Known scope limits (see docs/phase2-effect-analysis-2026-09.md):
   - Population is the 851 violation-linked segments only, not a citywide or
     random sample of Manhattan blocks.
-  - Outcome is OATH cleanliness violations only; 311 complaints and weather
-    controls are not yet joined in (no network access to NYC Open Data from
-    this environment -- see docs).
+  - 311 complaints are now joined in (see complaint_311_count); weather and
+    other contextual controls are still not joined.
   - One calendar month (August 2026) only.
 """
 import csv
@@ -66,6 +69,19 @@ def main():
 
     ever_swept = {pid: bool(visit_days_by_pid.get(pid)) for pid in segments}
 
+    # 311 complaints per (segment, day), if the match step has been run.
+    complaints_by_seg_day = defaultdict(int)
+    matched_311_path = OUT / "matched_311.json"
+    n_311_joined = 0
+    if matched_311_path.exists():
+        matched_311 = json.loads(matched_311_path.read_text())
+        for rec in matched_311:
+            pid = rec["physical_id"]
+            if pid not in seg_set:
+                continue
+            complaints_by_seg_day[(pid, rec["date"])] += 1
+            n_311_joined += 1
+
     panel_rows = []
     for pid in segments:
         visits = visit_days_by_pid.get(pid, set())
@@ -77,6 +93,7 @@ def main():
                 "day_of_week": d.strftime("%a"),
                 "swept": int(dstr in visits),
                 "violation_count": violations_by_seg_day.get((pid, dstr), 0),
+                "complaint_311_count": complaints_by_seg_day.get((pid, dstr), 0),
                 "segment_ever_swept_in_august": int(ever_swept[pid]),
             })
 
@@ -92,9 +109,10 @@ def main():
     n_rows = len(panel_rows)
     n_swept_days = sum(r["swept"] for r in panel_rows)
     n_violations = sum(r["violation_count"] for r in panel_rows)
+    n_311 = sum(r["complaint_311_count"] for r in panel_rows)
 
     summary = {
-        "generated_from": "reviewed_matches.csv + sweepnyc.json (August 2026, Manhattan)",
+        "generated_from": "reviewed_matches.csv + sweepnyc.json + matched_311.json (August 2026, Manhattan)",
         "segments": n_segments,
         "segments_with_at_least_one_august_visit": n_swept_segments,
         "segments_with_zero_august_visits": n_segments - n_swept_segments,
@@ -103,18 +121,22 @@ def main():
         "swept_segment_days": n_swept_days,
         "unswept_segment_days": n_rows - n_swept_days,
         "total_eligible_violations_in_panel": n_violations,
+        "total_311_complaints_in_panel": n_311,
+        "311_joined": matched_311_path.exists(),
         "scope_limits": [
             "Population is the 851 Manhattan segments already linked to an eligible "
             "OATH cleanliness violation in Phase 1 -- not a citywide or random sample.",
-            "Outcome is OATH cleanliness violations only; 311 complaints and weather "
-            "controls are not yet joined (no NYC Open Data network access from this "
-            "environment).",
+            "311 complaints (Dirty Condition, Street Sweeping Complaint) are joined "
+            "as a second outcome via address matching (scripts/match_311_to_segments.py); "
+            "weather and other contextual controls are still not joined.",
             "Single calendar month (August 2026).",
         ],
     }
     (OUT / "panel_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     inputs = [PROCESSED_ADJ / "reviewed_matches.csv", RAW_PILOT / "sweepnyc.json"]
+    if matched_311_path.exists():
+        inputs.append(matched_311_path)
     checksums = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}
     (OUT / "checksums.json").write_text(json.dumps(checksums, indent=2), encoding="utf-8")
 

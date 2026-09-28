@@ -13,12 +13,16 @@ Manhattan violations matched to a single, unambiguous CSCL segment, clearing
 the 80% go/no-go bar. See
 [`segment-analysis-2026-08.md`](docs/segment-analysis-2026-08.md).
 
-**Phase 2: effectiveness analysis — first pass done, null result.** Built
-the segment x day event panel and ran a segment fixed-effects comparison of
-swept vs. unswept days. No statistically significant relationship found
-between a recorded sweep and same-day or next-day violation counts, on this
-one month/one borough slice. Full write-up, method, and — importantly — the
-limitations that keep this from being a final answer:
+**Phase 2: effectiveness analysis — OATH pass null, 311 pass suggestive but
+not significant.** Built the segment x day event panel and ran segment
+fixed-effects comparisons of swept vs. unswept days, on both OATH
+violations and (added in a second pass, once 311 data was actually fetched
+via the browser-fetch technique below) 311 dirty-condition complaints. No
+statistically significant relationship for OATH, in either direction. For
+311, the same-day model points the expected way (fewer complaints on swept
+days) at p=0.093 — worth a closer look with more data, not yet a result.
+Full write-up, method, and — importantly — the limitations that keep this
+from being a final answer:
 [`phase2-effect-analysis-2026-09.md`](docs/phase2-effect-analysis-2026-09.md).
 
 The original go/no-go question for Phase 1:
@@ -35,7 +39,7 @@ The initial go/no-go target was **at least 80% high-confidence matches** for the
 | DSNY Sanitation OATH Database | Enforcement-observed sanitation conditions | `r78k-82m3` |
 | NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `inkn-q76z` (table; map: `3mf9-qshr`) |
 | NYC Address Points | Address/location bridge to street segments | `6xyb-j5pk` |
-| 311 Service Requests | Citizen-reported cleanliness signal | added after Phase 1 |
+| 311 Service Requests | Citizen-reported cleanliness signal | `erm2-nwe9` |
 
 ## Research questions
 

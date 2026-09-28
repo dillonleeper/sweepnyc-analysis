@@ -12,7 +12,13 @@ Two models on the segment x day panel (data/processed/effect_analysis/segment_da
      the following day rather than just the same day:
        violation_count[i,t+1] ~ swept[i,t] + segment_i + dow_t
 
-  3. A plain descriptive comparison (no controls): mean violations/day on
+  3. Same-day and next-day fixed-effects models repeated with 311 complaints
+     (complaint_311_count: eligible "Dirty Condition" / "Street Sweeping
+     Complaint" records, address-matched via scripts/match_311_to_segments.py)
+     as the outcome instead of OATH violations -- a second, independently
+     sourced cleanliness signal on the same population and month.
+
+  4. A plain descriptive comparison (no controls): mean violations/day on
      swept-days vs unswept-days, and on segments with >=1 August sweep visit
      vs segments with zero -- reported for plain-language framing, but this
      one is NOT adjusted for anything and is confounded by which segments
@@ -94,6 +100,23 @@ def main():
     lead_df = df.dropna(subset=["violation_count_next_day"]).copy()
     next_day = cluster_fe_ols(lead_df, "violation_count_next_day", "swept")
 
+    # --- Models 3-4: same as 1-2, but with 311 complaints as the outcome -----
+    has_311 = "complaint_311_count" in df.columns and df["complaint_311_count"].sum() > 0
+    if has_311:
+        same_day_311 = cluster_fe_ols(df, "complaint_311_count", "swept")
+        df["complaint_311_count_next_day"] = df.groupby("physical_id")["complaint_311_count"].shift(-1)
+        lead_df_311 = df.dropna(subset=["complaint_311_count_next_day"]).copy()
+        next_day_311 = cluster_fe_ols(lead_df_311, "complaint_311_count_next_day", "swept")
+
+        swept_311_mean = df.loc[df.swept == 1, "complaint_311_count"].mean()
+        unswept_311_mean = df.loc[df.swept == 0, "complaint_311_count"].mean()
+        descriptive["mean_311_complaints_per_day_on_swept_days"] = round(float(swept_311_mean), 4)
+        descriptive["mean_311_complaints_per_day_on_unswept_days"] = round(float(unswept_311_mean), 4)
+        descriptive["total_311_complaints_in_panel"] = int(df["complaint_311_count"].sum())
+        descriptive["segments_with_at_least_one_311_hit"] = int(
+            df.groupby("physical_id")["complaint_311_count"].max().gt(0).sum()
+        )
+
     results = {
         "panel": {
             "rows": int(len(df)),
@@ -129,9 +152,38 @@ def main():
             "reverse-causality concerns.",
             "OATH violations depend on an inspector being present, so this measures "
             "enforcement-observed cleanliness, not litter volume directly.",
-            "311 complaints and weather/street-type controls are not yet joined in.",
+            "311 complaints depend on a resident noticing and choosing to report, "
+            "which is its own source of noise, independent from OATH's "
+            "inspector-presence dependency -- that's exactly why it's useful as a "
+            "second signal rather than a replacement for OATH.",
+            "Only 394 of 1,380 fetched August 311 complaints (28.6%) fell on a "
+            "Phase-1-population segment (address-matched, same method as OATH); "
+            "718 were on Manhattan segments outside the 851-segment population "
+            "and 268 were unmatched/ambiguous. The 311 sample size per segment-day "
+            "is correspondingly much smaller than OATH's, so its models have less "
+            "power to detect an effect even before considering anything else.",
+            "Weather and street-type controls are still not joined in.",
         ],
     }
+    if has_311:
+        results["model_3_same_day_fixed_effects_311"] = {
+            "spec": "complaint_311_count[i,t] ~ swept[i,t] + segment FE + day-of-week FE, clustered SE by segment",
+            **same_day_311,
+            "interpretation": (
+                f"On the same day, a recorded sweep is associated with "
+                f"{same_day_311['coef']:+.4f} eligible 311 complaints per segment-day "
+                f"(p={same_day_311['p']:.3f}), holding the segment and day-of-week fixed."
+            ),
+        }
+        results["model_4_next_day_fixed_effects_311"] = {
+            "spec": "complaint_311_count[i,t+1] ~ swept[i,t] + segment FE + day-of-week FE, clustered SE by segment",
+            **next_day_311,
+            "interpretation": (
+                f"A sweep today is associated with {next_day_311['coef']:+.4f} eligible "
+                f"311 complaints on the segment the next day (p={next_day_311['p']:.3f}), "
+                f"holding the segment and day-of-week fixed."
+            ),
+        }
 
     (OUT / "effect_analysis_results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(json.dumps(results, indent=2))
