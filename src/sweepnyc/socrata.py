@@ -7,11 +7,15 @@ columnar storage rather than repeatedly downloading full datasets.
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import requests
 
 from .config import SOCRATA_DOMAIN
+
+_MAX_ATTEMPTS = 3
+_BACKOFF_SECONDS = 2.0
 
 
 def metadata(dataset_id: str) -> dict[str, Any]:
@@ -52,6 +56,32 @@ def fetch_rows(
     if order:
         params["$order"] = order
 
-    response = requests.get(url, params=params, timeout=60)
+    response = _get_with_retries(url, params=params, timeout=60)
     response.raise_for_status()
     return response.json()
+
+
+def _get_with_retries(
+    url: str, *, params: dict[str, Any], timeout: int
+) -> requests.Response:
+    """GET with retries for transient network errors and 5xx responses.
+
+    NYC Open Data occasionally times out or 5xx's on individual pages; a
+    single such hiccup shouldn't abort a multi-page pull.
+    """
+    last_error: Exception = RuntimeError("unreachable")
+    for attempt in range(_MAX_ATTEMPTS):
+        try:
+            response = requests.get(url, params=params, timeout=timeout)
+        except requests.exceptions.RequestException as exc:
+            last_error = exc
+        else:
+            if response.status_code < 500:
+                return response
+            last_error = requests.exceptions.HTTPError(
+                f"{response.status_code} server error for url: {response.url}",
+                response=response,
+            )
+        if attempt < _MAX_ATTEMPTS - 1:
+            time.sleep(_BACKOFF_SECONDS * (2**attempt))
+    raise last_error

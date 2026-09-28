@@ -1,0 +1,52 @@
+{
+  "independent_recount": {
+    "oath_rows": 5793,
+    "eligible_records": 2028,
+    "quality_counts": {
+      "exact": 1918,
+      "ambiguous": 99,
+      "unmatched": 7,
+      "high_confidence": 4
+    },
+    "sweep_overlap": 1492
+  },
+  "threshold_sensitivity": [
+    {
+      "max_distance_ft": 100,
+      "min_margin_ft": 20,
+      "endpoint_buffer_ft": 20,
+      "corroborated_matched_records": 1728,
+      "corroborated_sample_records": 94
+    },
+    {
+      "max_distance_ft": 150,
+      "min_margin_ft": 10,
+      "endpoint_buffer_ft": 20,
+      "corroborated_matched_records": 1799,
+      "corroborated_sample_records": 95
+    },
+    {
+      "max_distance_ft": 150,
+      "min_margin_ft": 20,
+      "endpoint_buffer_ft": 20,
+      "corroborated_matched_records": 1729,
+      "corroborated_sample_records": 94
+    },
+    {
+      "max_distance_ft": 150,
+      "min_margin_ft": 30,
+      "endpoint_buffer_ft": 20,
+      "corroborated_matched_records": 1655,
+      "corroborated_sample_records": 90
+    },
+    {
+      "max_distance_ft": 200,
+      "min_margin_ft": 20,
+      "endpoint_buffer_ft": 20,
+      "corroborated_matched_records": 1731,
+      "corroborated_sample_records": 94
+    }
+  ],
+  "ground_truth_accuracy": null,
+  "historical_23c_resolved": false
+}

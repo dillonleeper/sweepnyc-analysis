@@ -1,0 +1,96 @@
+{
+  "eligible_records": 2028,
+  "matched_records": 1922,
+  "reviewed_sweep_overlap": 1492,
+  "cases": [
+    {
+      "ticket_number": "049853638J",
+      "address_case": "541_w125",
+      "original_physical_id": "19407",
+      "reviewed_physical_id": "117672",
+      "decision": "correct_case",
+      "oath_bbl": "1019820007",
+      "building_bin": "1059692",
+      "point_to_parcel_ft": 0.0,
+      "point_to_building_ft": 0.0,
+      "lion_23c_distances_ft": {
+        "117672": 57.8,
+        "19407": 103.8
+      },
+      "service_url": "https://sweepnyc.nyc.gov/mappingapi/api/highlight/sweepinfo?lat=40.814688018194&lon=-73.957167885416&t=1789876950224&radius=0.5"
+    },
+    {
+      "ticket_number": "049886175N",
+      "address_case": "545_w125",
+      "original_physical_id": "19407",
+      "reviewed_physical_id": "117672",
+      "decision": "correct_case",
+      "oath_bbl": "1019820005",
+      "building_bin": "1059691",
+      "point_to_parcel_ft": 0.0,
+      "point_to_building_ft": 0.0,
+      "lion_23c_distances_ft": {
+        "117672": 56.25,
+        "19407": 155.22
+      },
+      "service_url": "https://sweepnyc.nyc.gov/mappingapi/api/highlight/sweepinfo?lat=40.814819270988&lon=-73.95728946215&t=1789876950371&radius=0.5"
+    },
+    {
+      "ticket_number": "049918725M",
+      "address_case": "545_w125",
+      "original_physical_id": "19407",
+      "reviewed_physical_id": "117672",
+      "decision": "correct_case",
+      "oath_bbl": "1019820005",
+      "building_bin": "1059691",
+      "point_to_parcel_ft": 0.0,
+      "point_to_building_ft": 0.0,
+      "lion_23c_distances_ft": {
+        "117672": 56.25,
+        "19407": 155.22
+      },
+      "service_url": "https://sweepnyc.nyc.gov/mappingapi/api/highlight/sweepinfo?lat=40.814819270988&lon=-73.95728946215&t=1789876950371&radius=0.5"
+    },
+    {
+      "ticket_number": "049909531J",
+      "address_case": "13_e27",
+      "original_physical_id": "81213",
+      "reviewed_physical_id": "81213",
+      "decision": "retain_historical_id",
+      "oath_bbl": "1008570066",
+      "building_bin": "1016894",
+      "point_to_parcel_ft": 0.0,
+      "point_to_building_ft": 0.0,
+      "lion_23c_distances_ft": {
+        "81213": 37.18
+      },
+      "service_url": "https://sweepnyc.nyc.gov/mappingapi/api/highlight/sweepinfo?lat=40.743815998881&lon=-73.986880770554&t=1789876950476&radius=0.5"
+    },
+    {
+      "ticket_number": "049909538M",
+      "address_case": "13_e27",
+      "original_physical_id": "81213",
+      "reviewed_physical_id": "81213",
+      "decision": "retain_historical_id",
+      "oath_bbl": "1008570066",
+      "building_bin": "1016894",
+      "point_to_parcel_ft": 0.0,
+      "point_to_building_ft": 0.0,
+      "lion_23c_distances_ft": {
+        "81213": 37.18
+      },
+      "service_url": "https://sweepnyc.nyc.gov/mappingapi/api/highlight/sweepinfo?lat=40.743815998881&lon=-73.986880770554&t=1789876950476&radius=0.5"
+    }
+  ],
+  "historical_lion_edition": "23C",
+  "matched_unique_ids": 850,
+  "matched_ids_present_in_lion_23c": 846,
+  "matched_ids_absent_from_lion_23c": [
+    "204036",
+    "206391",
+    "206394",
+    "206507"
+  ],
+  "exact_dsny_cscl_23c_snapshot_verified": false,
+  "limitations": "LION is not an exact CSCL snapshot. Public SweepNYC responses are current, not August observations. Parcel/building evidence checks location; it does not certify every address or matcher accuracy."
+}

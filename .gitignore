@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Reproducible extracts and row-level pilot outputs stay local
+data/raw/
+data/processed/

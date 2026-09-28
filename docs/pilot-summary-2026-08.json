@@ -1,0 +1,75 @@
+{
+  "generated_at_utc": "2026-09-19T16:04:05.150475+00:00",
+  "pilot_start": "2026-08-01T00:00:00",
+  "pilot_end": "2026-09-01T00:00:00",
+  "borough": "MANHATTAN",
+  "oath_rows_in_period": 5793,
+  "cleanliness_candidate_rows": 2028,
+  "cscl_rows": 14106,
+  "sweepnyc_rows_in_period": 464418,
+  "sweepnyc_extract_scope": "citywide; overlap assessed on Manhattan matched IDs",
+  "unique_swept_physical_ids": 38627,
+  "quality_counts": {
+    "exact": 1918,
+    "ambiguous": 99,
+    "unmatched": 7,
+    "high_confidence": 4
+  },
+  "method_counts": {
+    "street_house_range": 1922,
+    "street_match_no_house_range": 48,
+    "multiple_house_range_segments": 52,
+    "missing_address": 3,
+    "no_street_match": 3
+  },
+  "exact_rate": 0.9457593688362919,
+  "confident_match_rate": 0.9477317554240631,
+  "sweep_linkage_rate_all_eligible": 0.7357001972386588,
+  "sweep_overlap_rate_among_matched": 0.7762747138397502,
+  "duplicate_oath_ticket_rows": 0,
+  "threshold": 0.8,
+  "passes_threshold": true,
+  "status": "evaluated",
+  "source_manifest": {
+    "extracted_at_utc": "2026-09-19T16:00:28.605622+00:00",
+    "pilot_start": "2026-08-01T00:00:00",
+    "pilot_end": "2026-09-01T00:00:00",
+    "borough": "MANHATTAN",
+    "sources": {
+      "oath": {
+        "dataset_id": "r78k-82m3",
+        "where": "violation_location_borough='MANHATTAN' AND violation_date >= '2026-08-01T00:00:00' AND violation_date < '2026-09-01T00:00:00'",
+        "select": "ticket_number,violation_date,violation_time,issuing_agency,violation_location_borough,violation_location_block_no,violation_location_lot_no,violation_location_house,violation_location_street_name,violation_location_zip_code,violation_description,charge_1_code,charge_1_code_description,charge_2_code,charge_2_code_description,charge_3_code,charge_3_code_description,charge_4_code_description,charge_5_code_description,charge_6_code_description,charge_7_code_description,charge_8_code_description,charge_9_code_description,charge_10_code_description",
+        "order": ":id",
+        "rows": 5793,
+        "sha256": "39377ceac919e3580c1159eedc2607b762fac4928c710177dfc18d31f95269cf",
+        "rows_updated_at": 1789793029
+      },
+      "cscl": {
+        "dataset_id": "inkn-q76z",
+        "where": "boroughcode='1'",
+        "select": "physicalid,l_low_hn,l_high_hn,r_low_hn,r_high_hn,l_zip,r_zip,boroughcode as borocode,full_street_name as full_stree,street_name as st_name,stname_label as st_label",
+        "order": ":id",
+        "rows": 14106,
+        "sha256": "dca3a51d30a11ea187398ec9cb99c187955538d0bc69b4c8ac6eb15eded722d4",
+        "rows_updated_at": 1789227420
+      },
+      "sweepnyc": {
+        "dataset_id": "c23c-uwsm",
+        "where": "date_visited >= '2026-08-01T00:00:00' AND date_visited < '2026-09-01T00:00:00'",
+        "select": "physical_id,date_visited,cscl_version",
+        "order": ":id",
+        "rows": 464418,
+        "sha256": "85b97a749f683647f08ffa7c59b538b34ca99aa2eeff35bf8c2de03f0423a258",
+        "rows_updated_at": 1789760284
+      }
+    }
+  },
+  "python_version": "3.12.14",
+  "sweep_cscl_versions": [
+    "23C"
+  ],
+  "matched_unique_segments": 850,
+  "matched_unique_segments_swept_in_period": 659,
+  "matched_oath_records_swept_in_period": 1492
+}

@@ -5,7 +5,7 @@ SOCRATA_DOMAIN = "data.cityofnewyork.us"
 DATASETS = {
     "sweepnyc": "c23c-uwsm",
     "oath": "r78k-82m3",
-    "cscl": "3mf9-qshr",
+    "cscl": "inkn-q76z",
     "address_points": "6xyb-j5pk",
 }
 

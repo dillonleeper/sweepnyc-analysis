@@ -22,7 +22,7 @@ The initial go/no-go target is **at least 80% high-confidence matches** for the 
 | --- | --- | --- |
 | SweepNYC Street Cleaning | Treatment: documented mechanical-sweeper visits by street segment/day | `c23c-uwsm` |
 | DSNY Sanitation OATH Database | Enforcement-observed sanitation conditions | `r78k-82m3` |
-| NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `3mf9-qshr` |
+| NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `inkn-q76z` (table; map: `3mf9-qshr`) |
 | NYC Address Points | Address/location bridge to street segments | `6xyb-j5pk` |
 | 311 Service Requests | Citizen-reported cleanliness signal | added after Phase 1 |
 
@@ -108,3 +108,72 @@ python scripts/inspect_sources.py
 ## License
 
 MIT.
+
+## Run the Manhattan pilot
+
+```powershell
+.venv/Scripts/python.exe -m pip install -r requirements.txt pytest
+$env:PYTHONPATH = "src"
+.venv/Scripts/python.exe -m pytest -q
+.venv/Scripts/python.exe scripts/run_match_pilot.py
+# Reproduce matching from the saved, checksummed extracts without network access:
+.venv/Scripts/python.exe scripts/run_match_pilot.py --replay
+```
+
+On other platforms, use `python` in the activated environment and `PYTHONPATH=src` for tests.
+The default interval is August 1 inclusive through September 1 exclusive, 2026.
+`PILOT_START` and `PILOT_END` override it; only Manhattan is supported currently.
+An empty eligible sample produces a null rate and no threshold decision, not a 0% rate.
+
+Raw extracts, source schemas, and a query/checksum manifest are saved in
+`data/raw/pilot/`. Results and their manifest are saved in `data/processed/pilot/`.
+These directories are ignored by Git. Aggregate observed results are recorded in
+[the pilot report](docs/pilot-results-2026-08.md). `requirements-observed.txt`
+records the exact installed Windows/Python 3.12 environment; use the general
+requirements file on other platforms (the snapshot includes Windows-only packages).
+Live sources can change; use the saved extracts for exact reproduction.
+
+## Validation milestone
+
+The [September 2026 validation report](docs/validation-report-2026-08.md) audits
+100 sampled matches, all four suffixed matches, and all 106 unresolved violations.
+It also checks the entire matched population against saved address points.
+94/100 sample records are spatially corroborated; this is **not measured accuracy**.
+Three records have conflicting spatial evidence and two use an ID missing from the
+refreshed reference. Historical CSCL 23C alignment remains unresolved.
+
+The [follow-up case review](docs/case-review-2026-08.md) locates official LION 23C,
+checks five violations against parcels, buildings, and the public SweepNYC lookup,
+and records three corrected assignments in a separate reviewed output. Coverage
+and August sweep overlap are unchanged. LION covers 846/850 matched IDs; the exact
+DSNY CSCL snapshot and eight violations on four absent IDs remain unverified.
+
+Run `scripts/fetch_validation_sources.py` once to save current reference evidence,
+then `scripts/run_validation_audit.py` and `scripts/render_validation_maps.py`.
+Audit results live under `data/processed/validation/`; raw sources under
+`data/raw/validation/`. The original pilot snapshot is retained. Candidate recoveries
+are review suggestions and never silently alter the original match rate.
+
+## LION-23C gap resolution
+
+The [LION-gap resolution](docs/lion-gap-resolution-2026-09.md) explains why four
+PhysicalIDs were absent from LION 23C (SweepNYC's own extract is keyed to CSCL
+version 23C; these four segments were renumbered since) and resolves the eight
+affected violations, recovering 7 real August sweep observations. Run
+`scripts/resolve_lion_gap_cases.py` after the case-review replay steps above.
+
+## Segment-level violations vs. sweep visits
+
+The [August 2026 segment analysis](docs/segment-analysis-2026-08.md) builds a
+PhysicalID-level table comparing eligible violations to recorded August sweep
+visit-days for the 851 Manhattan segments linked to at least one violation. It
+defines a visit as a distinct (segment, day) pair to avoid inflating counts from
+same-day duplicate GPS observations, and flags segments with frequent violations
+despite a recorded sweep, and segments with no recorded August observation. It
+draws no causal or citywide conclusions. Its Limitations section also notes
+that DSNY's fleet is overwhelmingly mechanical broom (~35% reported pickup
+efficiency vs. 75-97% for regenerative-air equipment), which is background
+context for why a swept segment can still carry violations, not a verified
+project input. Run `scripts/build_segment_table.py` then
+`scripts/render_segment_charts.py`; outputs live under
+`data/processed/segment_analysis/`.
