@@ -13,16 +13,24 @@ Manhattan violations matched to a single, unambiguous CSCL segment, clearing
 the 80% go/no-go bar. See
 [`segment-analysis-2026-08.md`](docs/segment-analysis-2026-08.md).
 
-**Phase 2: effectiveness analysis — null on both outcomes, across two
-months.** Built the segment x day event panel and ran segment fixed-effects
+**Phase 2: effectiveness analysis — day-level null holds across two months
+and a weather control; one unresolved lead from real matched controls.**
+Built the segment x day event panel and ran segment fixed-effects
 comparisons of swept vs. unswept days on both OATH violations and 311
 dirty-condition complaints (both fetched via the browser-fetch technique
 below). August alone gave OATH a clean null and 311 a suggestive-but-weak
 same-day result (p=0.093). Extending to July+August specifically to test
 whether that 311 result held up — **it didn't**: the coefficient shrank and
-its p-value rose to 0.291, moving toward null rather than away from it. Full
-write-up, method, and — importantly — the limitations that keep this from
-being a final answer:
+its p-value rose to 0.291, moving toward null rather than away from it.
+Addressing the two design gaps that follow-up pointed to — a daily rain
+control and genuine street-type covariates for real matched controls
+(instead of the fixed-effects substitute) — left the day-level null
+unchanged, but the matched-control comparison found swept segments have
+fewer violations/complaints than structurally similar never-swept ones, a
+result that's significant naively but only borderline once corrected for
+how few distinct segments the matching actually drew from. Full write-up,
+method, and — importantly — the limitations that keep this from being a
+final answer:
 [`phase2-effect-analysis-2026-09.md`](docs/phase2-effect-analysis-2026-09.md).
 
 The original go/no-go question for Phase 1:
@@ -40,6 +48,7 @@ The initial go/no-go target was **at least 80% high-confidence matches** for the
 | NYC Street Centerline (CSCL) | Street-segment geometry and `PHYSICALID` | `inkn-q76z` (table; map: `3mf9-qshr`) |
 | NYC Address Points | Address/location bridge to street segments | `6xyb-j5pk` |
 | 311 Service Requests | Citizen-reported cleanliness signal | `erm2-nwe9` |
+| NOAA NCEI Daily Summaries | Weather control (Central Park station `USW00094728`) | n/a (NOAA GHCN-Daily, not NYC Open Data) |
 
 ## Research questions
 

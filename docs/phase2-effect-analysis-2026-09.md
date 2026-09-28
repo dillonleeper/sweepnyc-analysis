@@ -7,17 +7,32 @@ project's actual research question for the first time: **does a documented
 SweepNYC visit predict fewer OATH cleanliness violations, or fewer 311
 dirty-condition complaints, on that street segment?**
 
-**Headline: no.** Against OATH violations (the primary outcome), this finds
-no statistically significant relationship, in either direction, between a
+**Headline: still no on the day-level question, with one genuinely new
+wrinkle.** Against OATH violations (the primary outcome), this finds no
+statistically significant relationship, in either direction, between a
 recorded sweep and eligible violation counts. Against 311 complaints (added
 in a second pass, once this session solved its NYC Open Data network-access
 blocker — see below), the August-only same-day model initially looked
 suggestive (p=0.093, in the expected direction), but a follow-up pass adding
 July 2026 found that result **moved toward null rather than strengthening**
 (p=0.291) — see "Follow-up: does the 311 signal hold up with more data?"
-below. Nothing in this document should be read as evidence that sweeping
-works or doesn't; see Limitations for why the scope here is too narrow to
-settle that either way.
+below. Adding a daily rain control didn't change any of that (see "Design-gap
+remediation" below) — the day-level null is not a weather artifact.
+
+The one new wrinkle: once real street-type covariates (width, lane count,
+one-way/two-way, functional-class proxy) were fetched, a genuine
+covariate-matched comparison — segments that are *ever* swept vs.
+structurally similar segments that are *never* swept — found swept segments
+have fewer violations and fewer 311 complaints. That result is significant
+in the naive version of the test, but drops to non-significant (violations)
+or borderline (311, p=0.087) once corrected for how few distinct "donor"
+segments the matching actually drew from. See "Design-gap remediation"
+below — this is a different question from the day-level models above (does
+sweeping happen on structurally different streets, not does a given day's
+sweep reduce that day's violations), and neither confirms nor overturns the
+day-level null. Nothing in this document should be read as a settled
+verdict on whether sweeping works; see Limitations for why the scope here
+is too narrow for that.
 
 ## Data and population
 
@@ -210,6 +225,80 @@ The OATH same-day coefficient also stayed small and non-significant
 311 story, for what a lower-confidence July OATH match is worth. Full output:
 `data/processed/effect_analysis/effect_analysis_results_multi_month.json`.
 
+## Design-gap remediation: weather and a real matched-control design
+
+The two design gaps named as this project's highest-value next moves (see
+the previous version of "Suggested next steps") were: (1) a weather control,
+to rule out rain as a hidden common cause of sweep timing and 311/OATH
+reporting; and (2) a genuine matched-control design using real street-type
+covariates, instead of the segment-fixed-effects substitute used above.
+Both are now done.
+
+**Weather.** Daily precipitation/temperature for Central Park
+(station `USW00094728`, NOAA NCEI GHCN-Daily, fetched via the same
+browser-fetch technique used for 311/OATH/sweep — see
+`data/raw/phase2/design_gap_manifest.json`) was joined onto every panel day
+by date (`scripts/build_weather_features.py`), and the four two-month
+fixed-effects models were rerun with a `rained` (>=1.0mm) control added
+(`scripts/run_effect_analysis_with_weather.py`):
+
+| Model | Swept coefficient, no weather control | Swept coefficient, with rain control | `rained` coefficient (own effect) |
+| --- | --- | --- | --- |
+| Same-day OATH | +0.0025 (p=0.602) | +0.0023 (p=0.630) | -0.0062 (p=0.050) |
+| Next-day OATH | +0.0037 (p=0.373) | +0.0033 (p=0.436) | -0.0144 (p<0.001) |
+| Same-day 311 | -0.0018 (p=0.291) | -0.0018 (p=0.276) | -0.0020 (p=0.099) |
+| Next-day 311 | +0.0008 (p=0.696) | +0.0007 (p=0.716) | -0.0016 (p=0.147) |
+
+Rain itself has a real, mostly statistically significant negative
+association with both outcomes (fewer violations and complaints on and
+after rainy days — plausibly less litter accumulation, fewer inspectors and
+residents out) — so it was worth controlling for. But the swept coefficients
+barely move at all once it's added. **Rain was not hiding or distorting the
+day-level swept effect; the null result is robust to it.** Full output:
+`data/processed/effect_analysis/effect_analysis_results_with_weather.json`.
+
+**Real matched controls.** A fuller extract of the CSCL street-centerline
+table (`inkn-q76z`, not the address-range-only fields Phase 1 originally
+pulled) was fetched with genuine street-type fields — roadbed width, travel/
+park/total lane counts, one-way vs. two-way, DSNY snow-plow priority tier
+(used as a functional-class proxy, since CSCL's own `fcc` field is null for
+every Manhattan row in this extract), and truck-route designation
+(`scripts/build_street_covariates.py`). This finally makes possible the
+matched-control design the original plan called for and the fixed-effects
+section above explained wasn't yet buildable: for each of the 186
+never-swept segments with usable covariates, `scripts/run_matched_control_analysis.py`
+finds its closest structurally-similar *swept* segment (exact match on
+one-way + snow-priority tier, nearest-neighbor by standardized width/lane
+counts within that group) and compares their two-month outcome rates.
+
+| Outcome | Never-swept mean/day | Matched-swept mean/day | Naive paired-t p (n=186) | Donor-collapsed paired-t p (n=52 unique donors) |
+| --- | --- | --- | --- | --- |
+| Eligible violations | 0.0656 | 0.0472 | 0.009 | 0.175 |
+| 311 complaints | 0.0143 | 0.0054 | 0.0003 | 0.087 |
+
+Read the right-hand column, not the naive one: only **52 distinct swept
+segments** end up serving as the nearest match for all 186 never-swept
+segments (the three busiest donors alone cover 64 of the 186 pairs), so the
+"186 independent pairs" the naive test assumes isn't real — those repeated
+donors make many pairs non-independent draws. Collapsing to one row per
+unique donor is the honest sample size, and at that size the violations
+result is not significant (p=0.175) and the 311 result is borderline
+(p=0.087, same direction as the naive result but well short of
+conventional significance).
+
+**How to read this alongside the day-level null above:** this is a
+different comparison — *do segments that ever get swept differ from
+structurally similar segments that never do*, not *does a given day's sweep
+reduce that day's violations*. It's still confounded by anything the
+covariates don't capture (why DSNY put a segment on a sweep route in the
+first place is itself unobserved) and by reverse causality. Taken together
+with the day-level result: there's a hint that swept and never-swept
+streets look different beyond street width/lanes/one-way-ness, but it's not
+strong enough, at this sample size, to call it a sweeping effect rather
+than an artifact of which streets get put on a route. Full output:
+`data/processed/effect_analysis/matched_control_results.json`,
+`data/processed/effect_analysis/matched_control_pairs.csv`.
+
 ## What this does and doesn't show
 
 **It does not show that sweeping doesn't work.** A null result from two
@@ -225,9 +314,18 @@ hiding.
 
 ## Limitations (read before presenting this)
 
-- **Weather and street-type controls are still not joined in.** 311 is now
-  joined (see above); weather and street-type/traffic proxies, both called
-  for in the original plan, are not yet — see Suggested next steps.
+- **Weather and street-type covariates are now joined in — see "Design-gap
+  remediation" above — but neither closes the gap it was meant to close.**
+  The rain control leaves the day-level null unchanged; the street-type
+  matched-control result is directionally interesting but not robust to the
+  donor-reuse correction, so it's a lead, not a finding.
+- **The matched-control donor pool is thin and reused.** Only 52 distinct
+  swept segments end up matched to all 186 never-swept segments; the
+  effective sample size for that comparison is much smaller than 186 pairs
+  suggests, and the busiest 3 donors alone cover a third of the pairs.
+- **Weather is one station applied city-wide.** Central Park's daily
+  reading stands in for every Manhattan segment; it can't capture a
+  localized downpour hitting one neighborhood and not another.
 - **The 311 match rate to this project's population is low by design, and
   the resulting sample is small.** Only 394 of 1,380 fetched August 311
   complaints (28.6%) landed on one of the 851 Phase-1-population segments;
@@ -264,18 +362,24 @@ hiding.
 1. **Get August's manual-review rigor applied to July's OATH matches**, so
    the two-month OATH comparison isn't asymmetric — currently the 311
    comparison is the trustworthy apples-to-apples one, and OATH isn't.
-2. Fetch a weather source and join it in as a control column, using the
-   same browser-fetch technique now validated for 311 and July's OATH/sweep
-   pulls (see "How the 311 data was fetched" above) if the target source
-   also blocks this environment's shell.
+2. **Grow the matched-control donor pool before trusting its result either
+   way.** The 311 signal there (p=0.087 donor-collapsed) is the closest
+   thing to a live lead this project has — widening the population beyond
+   "851 segments that already had an August violation" (e.g., a random
+   sample of swept AND never-swept Manhattan segments, not just
+   violation-linked ones) would both grow the never-swept side and give the
+   matcher more distinct swept donors to draw from, rather than reusing the
+   same handful repeatedly.
 3. Sanity-check the 1-day median sweep gap against DSNY's published ASP
    schedule for a handful of these segments — confirm it reflects real
    service frequency rather than a data artifact.
-4. Extend the panel further (beyond July+August) if there's still appetite
-   to chase statistical power — two months of null results is more
-   informative than one, but still not enough to rule out a real, smaller
-   effect than this design has power to detect.
-5. If a genuine matched-control design is still wanted, pull CSCL/PLUTO
-   fields that proxy for street type and traffic (lane count, functional
-   class) to support real nearest-neighbor matching instead of the
-   fixed-effects substitute used here.
+4. Extend the day-level panel further (beyond July+August) if there's still
+   appetite to chase statistical power on the fixed-effects question — two
+   months of null results is more informative than one, but still not
+   enough to rule out a real, smaller effect than this design has power to
+   detect. This is now the lower-priority of the two extensions (see #2).
+5. If pursuing the matched-control lead further, consider PLUTO land-use
+   fields (commercial vs. residential frontage, building density) as
+   additional match covariates — CSCL's street-geometry fields say nothing
+   about what's actually on the block, which is plausibly closer to why
+   DSNY routes a sweeper there at all.
