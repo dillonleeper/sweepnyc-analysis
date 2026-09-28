@@ -13,16 +13,16 @@ Manhattan violations matched to a single, unambiguous CSCL segment, clearing
 the 80% go/no-go bar. See
 [`segment-analysis-2026-08.md`](docs/segment-analysis-2026-08.md).
 
-**Phase 2: effectiveness analysis — OATH pass null, 311 pass suggestive but
-not significant.** Built the segment x day event panel and ran segment
-fixed-effects comparisons of swept vs. unswept days, on both OATH
-violations and (added in a second pass, once 311 data was actually fetched
-via the browser-fetch technique below) 311 dirty-condition complaints. No
-statistically significant relationship for OATH, in either direction. For
-311, the same-day model points the expected way (fewer complaints on swept
-days) at p=0.093 — worth a closer look with more data, not yet a result.
-Full write-up, method, and — importantly — the limitations that keep this
-from being a final answer:
+**Phase 2: effectiveness analysis — null on both outcomes, across two
+months.** Built the segment x day event panel and ran segment fixed-effects
+comparisons of swept vs. unswept days on both OATH violations and 311
+dirty-condition complaints (both fetched via the browser-fetch technique
+below). August alone gave OATH a clean null and 311 a suggestive-but-weak
+same-day result (p=0.093). Extending to July+August specifically to test
+whether that 311 result held up — **it didn't**: the coefficient shrank and
+its p-value rose to 0.291, moving toward null rather than away from it. Full
+write-up, method, and — importantly — the limitations that keep this from
+being a final answer:
 [`phase2-effect-analysis-2026-09.md`](docs/phase2-effect-analysis-2026-09.md).
 
 The original go/no-go question for Phase 1:

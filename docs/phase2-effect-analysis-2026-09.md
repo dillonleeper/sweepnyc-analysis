@@ -7,17 +7,17 @@ project's actual research question for the first time: **does a documented
 SweepNYC visit predict fewer OATH cleanliness violations, or fewer 311
 dirty-condition complaints, on that street segment?**
 
-**Headline: mostly no, with one suggestive-but-not-significant exception.**
-Against OATH violations (the primary outcome), this finds no statistically
-significant relationship, in either direction, between a recorded sweep and
-eligible violation counts. Against 311 complaints (added in a second pass,
-once this session solved its NYC Open Data network-access blocker — see
-below), the same-day model runs in the expected direction — fewer 311
-complaints on swept days — and comes closer to conventional significance
-(p=0.093) without crossing the p<0.05 bar; the next-day 311 model is null.
-See Results and, especially, Limitations before treating any of this as a
-final answer — the scope here is narrow in ways that could hide a real
-effect, and a p=0.093 result is not evidence of an effect on its own.
+**Headline: no.** Against OATH violations (the primary outcome), this finds
+no statistically significant relationship, in either direction, between a
+recorded sweep and eligible violation counts. Against 311 complaints (added
+in a second pass, once this session solved its NYC Open Data network-access
+blocker — see below), the August-only same-day model initially looked
+suggestive (p=0.093, in the expected direction), but a follow-up pass adding
+July 2026 found that result **moved toward null rather than strengthening**
+(p=0.291) — see "Follow-up: does the 311 signal hold up with more data?"
+below. Nothing in this document should be read as evidence that sweeping
+works or doesn't; see Limitations for why the scope here is too narrow to
+settle that either way.
 
 ## Data and population
 
@@ -161,15 +161,67 @@ around a flat line, not a decay curve.
 
 Full numeric output: `data/processed/effect_analysis/effect_analysis_results.json`.
 
+## Follow-up: does the 311 signal hold up with more data?
+
+The suggested next step above was to extend the panel and see whether the
+same-day 311 result strengthens or dissolves. It's now been done: July 2026
+was fetched and matched the same way as August (same browser-fetch pipeline,
+same 851-segment population, same 311 matching method), and the two months'
+segment-days were combined into
+`data/processed/effect_analysis/segment_day_panel_multi_month.csv`
+(52,762 rows) via
+[`scripts/build_multi_month_panel.py`](../scripts/build_multi_month_panel.py),
+with the same fixed-effects models (now also holding month fixed) re-run by
+[`scripts/run_effect_analysis_multi_month.py`](../scripts/run_effect_analysis_multi_month.py).
+
+**One important asymmetry, read before comparing the numbers below:**
+August's OATH violations are Phase 1's fully manually reviewed
+`reviewed_matches.csv` (case review, LION-gap resolution, spatial
+corroboration). July's OATH violations are automated-match-only
+([`scripts/match_oath_month.py`](../scripts/match_oath_month.py)) — the same
+first-pass method Phase 1 started from *before* its human review — so July's
+OATH counts are lower-confidence than August's. **311 matching used the
+identical automated method for both months**, so the 311 comparison below
+is apples-to-apples in a way the OATH comparison isn't.
+
+**Answer: the suggestive 311 result did not hold up — it moved toward null.**
+
+| Model | August only (n=26,381) | July+August (n=52,762) |
+| --- | --- | --- |
+| Same-day 311: coefficient | -0.0044 | -0.0018 |
+| Same-day 311: p-value | 0.093 | 0.291 |
+| Next-day 311: coefficient | +0.0016 | +0.0008 |
+| Next-day 311: p-value | 0.574 | 0.696 |
+
+![Same-day 311 coefficient, August-only vs two-month](../data/processed/effect_analysis/same_day_311_coefficient_comparison.png)
+
+Doubling the sample cut the same-day 311 coefficient by more than half and
+pushed its p-value from "close to conventional significance" to
+comfortably-not-significant. That is exactly the outcome a real null effect
+produces when more data reduces sampling noise around zero — the opposite of
+what a real effect would do (which typically holds its estimate steady or
+sharpens as noise shrinks). **This is the honest result of following up on
+the earlier finding, not a disappointing one to downplay: the whole point of
+flagging p=0.093 as "suggestive, not confirmed" was that it needed exactly
+this kind of check before anyone treated it as evidence.**
+
+The OATH same-day coefficient also stayed small and non-significant
+(+0.0025, p=0.602, vs. August-only's +0.0057, p=0.378) — consistent with the
+311 story, for what a lower-confidence July OATH match is worth. Full output:
+`data/processed/effect_analysis/effect_analysis_results_multi_month.json`.
+
 ## What this does and doesn't show
 
-**It does not show that sweeping doesn't work.** A null result from one
-month, one borough, and a small, non-random population (851 segments, all
+**It does not show that sweeping doesn't work.** A null result from two
+months, one borough, and a small, non-random population (851 segments, all
 selected *because* they already had a violation) has limited power to
 detect a real effect even if one exists. What it does show is that the
-plan's simplest test — recorded sweep vs. next-day violations — doesn't
-turn up an effect in this slice, and the project's next moves (below) are
-designed to address exactly the reasons why it might not.
+plan's simplest test — recorded sweep vs. next-day violations, and the same
+test against 311 — doesn't turn up an effect in this two-month slice, and
+that the one earlier hint of a possible effect did not survive a direct
+follow-up test built to check exactly that. The project's next moves (below)
+are designed to address the remaining reasons a real effect could still be
+hiding.
 
 ## Limitations (read before presenting this)
 
@@ -185,9 +237,15 @@ designed to address exactly the reasons why it might not.
   OATH models (1,922 events on the same panel), so they have less power to
   detect a real effect — worth keeping in mind when the same-day 311
   coefficient came closer to significance than any OATH result did.
-- **One month, one borough, non-random segments.** All 851 segments were
-  selected because they already had a violation; the panel says nothing
-  about segments that never get a violation, or about any other borough.
+- **Two months, one borough, non-random segments.** All 851 segments were
+  selected because they already had an August violation; the panel says
+  nothing about segments that never get a violation, or about any other
+  borough.
+- **July's OATH matches are automated-only, not manually reviewed like
+  August's.** See "Follow-up" above. This doesn't change the 311-based
+  conclusion (311 matching is identical across months) but means the
+  two-month OATH numbers specifically should be read as lower-confidence
+  than August-only.
 - **No real matched-control group**, as explained above. Fixed effects
   control for time-invariant segment traits, not for anything that varies
   within August (e.g., a targeted enforcement push on one corridor).
@@ -203,19 +261,20 @@ designed to address exactly the reasons why it might not.
 
 ## Suggested next steps
 
-1. **Follow up on the suggestive 311 result rather than dropping it.** A
-   same-day p=0.093 in the expected direction isn't nothing, but it isn't
-   evidence on its own either — extending the panel beyond one month (next
-   item) is the most direct way to find out if it holds up or was noise.
+1. **Get August's manual-review rigor applied to July's OATH matches**, so
+   the two-month OATH comparison isn't asymmetric — currently the 311
+   comparison is the trustworthy apples-to-apples one, and OATH isn't.
 2. Fetch a weather source and join it in as a control column, using the
-   same browser-fetch technique now validated for 311 (see "How the 311
-   data was fetched" above) if the target source also blocks this
-   environment's shell.
+   same browser-fetch technique now validated for 311 and July's OATH/sweep
+   pulls (see "How the 311 data was fetched" above) if the target source
+   also blocks this environment's shell.
 3. Sanity-check the 1-day median sweep gap against DSNY's published ASP
    schedule for a handful of these segments — confirm it reflects real
    service frequency rather than a data artifact.
-4. Extend the panel beyond August once more months are available, both for
-   statistical power and to check whether either result holds up.
+4. Extend the panel further (beyond July+August) if there's still appetite
+   to chase statistical power — two months of null results is more
+   informative than one, but still not enough to rule out a real, smaller
+   effect than this design has power to detect.
 5. If a genuine matched-control design is still wanted, pull CSCL/PLUTO
    fields that proxy for street type and traffic (lane count, functional
    class) to support real nearest-neighbor matching instead of the

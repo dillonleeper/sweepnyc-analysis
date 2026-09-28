@@ -134,9 +134,17 @@ def match_311_to_cscl(rec: dict, street_index: dict[str, list[dict]], population
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", default=str(RAW_PHASE2 / "311_manhattan_august.json"))
+    parser.add_argument("--output", default=str(OUT / "matched_311.json"))
+    parser.add_argument("--summary-output", default=str(OUT / "matched_311_summary.json"))
+    args = parser.parse_args()
+
     OUT.mkdir(parents=True, exist_ok=True)
     cscl_rows = json.loads((RAW_PILOT / "cscl.json").read_text())
-    records = json.loads((RAW_PHASE2 / "311_manhattan_august.json").read_text())
+    records = json.loads(Path(args.input).read_text())
     population_ids = load_population_ids()
     street_index = build_street_index(cscl_rows)
 
@@ -161,17 +169,18 @@ def main():
             "complaint_type": rec["complaint_type"],
         })
 
-    out_path = OUT / "matched_311.json"
+    out_path = Path(args.output)
     out_path.write_text(json.dumps(joined, indent=2))
     print(f"Wrote {len(joined)} matched 311 records -> {out_path}")
 
     summary = {
+        "input": args.input,
         "total_311_fetched": len(records),
         "quality_breakdown": dict(quality_counts),
         "matched_to_population": len(in_population),
         "segments_with_311_hit": len({m["physical_id"] for m in in_population}),
     }
-    (OUT / "matched_311_summary.json").write_text(json.dumps(summary, indent=2))
+    Path(args.summary_output).write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
 
 
