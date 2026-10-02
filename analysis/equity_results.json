@@ -1,0 +1,52 @@
+[
+  {
+    "borough": "Bronx",
+    "closures": 23,
+    "population": 1401142,
+    "children_est": 329268,
+    "pct_under_18": 23.5,
+    "per_100k_residents": 1.64,
+    "per_10k_children": 0.7,
+    "per_100_sqmi": 54.54
+  },
+  {
+    "borough": "Brooklyn",
+    "closures": 60,
+    "population": 2538934,
+    "children_est": 525559,
+    "pct_under_18": 20.7,
+    "per_100k_residents": 2.36,
+    "per_10k_children": 1.14,
+    "per_100_sqmi": 86.48
+  },
+  {
+    "borough": "Manhattan",
+    "closures": 36,
+    "population": 1611989,
+    "children_est": 207947,
+    "pct_under_18": 12.9,
+    "per_100k_residents": 2.23,
+    "per_10k_children": 1.73,
+    "per_100_sqmi": 158.87
+  },
+  {
+    "borough": "Queens",
+    "closures": 23,
+    "population": 2225821,
+    "children_est": 405099,
+    "pct_under_18": 18.2,
+    "per_100k_residents": 1.03,
+    "per_10k_children": 0.57,
+    "per_100_sqmi": 21.16
+  },
+  {
+    "borough": "Staten Island",
+    "closures": 3,
+    "population": 475327,
+    "children_est": 96967,
+    "pct_under_18": 20.4,
+    "per_100k_residents": 0.63,
+    "per_10k_children": 0.31,
+    "per_100_sqmi": 5.22
+  }
+]
