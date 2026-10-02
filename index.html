@@ -6,58 +6,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
-  /* Layout: sticky picker bar -> stat strip -> SVG route map -> ordered stop list, one column, map-first reading order */
+  /* Visual identity borrows NYC DOT's own vocabulary — safety orange, black rule lines,
+     condensed sign lettering — instead of a generic warm-cream/serif "cozy autumn" look.
+     Layout: sign-plate header -> picker bar -> stat placards -> route map -> ordered stop list. */
   :root {
     color-scheme: light;
-    --bg: #FAF4EC;
-    --surface: #FFFFFF;
-    --surface-sunk: #F1E7D8;
-    --border: #E3D4BC;
-    --ink: #2B1D14;
-    --ink-soft: #7A6A57;
-    --pumpkin: #C8601E;
-    --pumpkin-soft: #F7E3CE;
+    --bg: #ECE7DA;
+    --surface: #FFFDF8;
+    --surface-sunk: #E3DCC8;
+    --border: #D8CFB8;
+    --ink: #1C1912;
+    --ink-soft: #6B6354;
+    --safety: #E8560B;
+    --safety-deep: #B5430A;
+    --safety-soft: #FBE1CC;
     --plum: #4B2E54;
     --plum-soft: #ECE1EE;
-    --gold: #9C7A1F;
-    --route-line: #C8601E;
-    --shadow: 0 1px 2px rgba(43,29,20,0.07), 0 10px 24px rgba(43,29,20,0.08);
+    --route-line: #E8560B;
+    --shadow: 0 1px 2px rgba(28,25,18,0.07), 0 10px 24px rgba(28,25,18,0.08);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #1C1512;
-      --surface: #2A201B;
-      --surface-sunk: #241B17;
-      --border: #44352C;
-      --ink: #F3E9DD;
-      --ink-soft: #AD9A86;
-      --pumpkin: #E8812F;
-      --pumpkin-soft: #3A2A1C;
+      --bg: #17140F;
+      --surface: #241F17;
+      --surface-sunk: #1E1A14;
+      --border: #413A2C;
+      --ink: #F1ECDF;
+      --ink-soft: #A99E88;
+      --safety: #FF7A33;
+      --safety-deep: #CC5A16;
+      --safety-soft: #3A2615;
       --plum: #C9A6D6;
       --plum-soft: #352C3B;
-      --gold: #D9B24C;
-      --route-line: #E8812F;
+      --route-line: #FF7A33;
       --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.35);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #1C1512;
-    --surface: #2A201B;
-    --surface-sunk: #241B17;
-    --border: #44352C;
-    --ink: #F3E9DD;
-    --ink-soft: #AD9A86;
-    --pumpkin: #E8812F;
-    --pumpkin-soft: #3A2A1C;
+    --bg: #17140F;
+    --surface: #241F17;
+    --surface-sunk: #1E1A14;
+    --border: #413A2C;
+    --ink: #F1ECDF;
+    --ink-soft: #A99E88;
+    --safety: #FF7A33;
+    --safety-deep: #CC5A16;
+    --safety-soft: #3A2615;
     --plum: #C9A6D6;
     --plum-soft: #352C3B;
-    --gold: #D9B24C;
-    --route-line: #E8812F;
+    --route-line: #FF7A33;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 24px rgba(0,0,0,0.35);
   }
 
@@ -82,22 +84,34 @@
     padding-bottom: 14px;
     margin-bottom: 4px;
   }
-  .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11.5px;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--pumpkin);
-    margin: 0 0 8px;
+  /* the hero reads as an actual roadside sign assembly: a bold orange plate carrying the
+     program's real name, with a plain descriptive line underneath — standing in for the
+     usual eyebrow-label + serif-headline pairing */
+  .sign-plate {
+    display: inline-block;
+    background: var(--safety);
+    border: 3px solid var(--ink);
+    border-radius: 7px;
+    padding: 10px 16px;
+    margin: 0 0 10px;
   }
-  h1 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-weight: 600;
-    font-size: clamp(26px, 6vw, 36px);
-    margin: 0 0 14px;
+  .sign-plate h1 {
+    margin: 0;
+    font-family: 'Oswald', 'Arial Narrow', sans-serif;
+    font-weight: 700;
+    font-size: clamp(22px, 6vw, 32px);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1;
     text-wrap: balance;
-    line-height: 1.1;
+  }
+  .tagline {
+    margin: 0 0 14px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    line-height: 1.5;
   }
 
   .pickers {
@@ -111,10 +125,8 @@
   }
   .picker label {
     display: block;
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
     color: var(--ink-soft);
     margin-bottom: 5px;
   }
@@ -124,17 +136,16 @@
     width: 100%;
     box-sizing: border-box;
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
+    border: 2px solid var(--ink);
+    border-radius: 7px;
     padding: 11px 14px;
     font-family: 'Work Sans', Arial, sans-serif;
     font-size: 15px;
     font-weight: 600;
     color: var(--ink);
-    box-shadow: var(--shadow);
     cursor: pointer;
   }
-  select:focus-visible { outline: 2.5px solid var(--pumpkin); outline-offset: 1px; }
+  select:focus-visible { outline: 2.5px solid var(--safety); outline-offset: 1px; }
 
   .radius-row {
     display: flex;
@@ -143,26 +154,25 @@
     margin-top: 12px;
   }
   .radius-row label {
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
     color: var(--ink-soft);
     flex: none;
   }
   input[type="range"] {
     flex: 1 1 auto;
-    accent-color: var(--pumpkin);
+    accent-color: var(--safety);
     height: 20px;
   }
   .radius-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
     color: var(--ink);
     flex: none;
-    min-width: 58px;
+    min-width: 54px;
     text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   .stats {
@@ -173,20 +183,20 @@
   }
   .stat {
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 13px 14px;
-    box-shadow: var(--shadow);
+    border: 2px solid var(--ink);
+    border-left: 6px solid var(--safety);
+    border-radius: 7px;
+    padding: 12px 13px;
   }
   .stat .n {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'Oswald', sans-serif;
     font-weight: 600;
-    font-size: 24px;
+    font-size: 26px;
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
   }
   .stat .l {
-    font-size: 11.5px;
+    font-size: 12.5px;
     color: var(--ink-soft);
     margin-top: 3px;
     font-weight: 500;
@@ -194,25 +204,24 @@
 
   .mapcard {
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 9px;
     padding: 14px 14px 10px;
-    box-shadow: var(--shadow);
     margin-bottom: 22px;
   }
   .mapcard { position: relative; }
   .mapcard #map {
     width: 100%;
     height: 380px;
-    border-radius: 10px;
+    border-radius: 5px;
     background: var(--surface-sunk);
     font-family: 'Work Sans', Arial, sans-serif;
   }
   .maplabel {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ink-soft);
-    text-align: center;
-    margin-top: 6px;
+    margin-top: 8px;
+    line-height: 1.5;
   }
   .map-styles {
     position: absolute;
@@ -221,9 +230,8 @@
     z-index: 1000;
     display: flex;
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    box-shadow: var(--shadow);
+    border: 2px solid var(--ink);
+    border-radius: 7px;
     overflow: hidden;
   }
   .map-style-btn {
@@ -234,10 +242,10 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--ink-soft);
-    border-right: 1px solid var(--border);
+    border-right: 2px solid var(--ink);
   }
   .map-style-btn:last-child { border-right: none; }
-  .map-style-btn.active { background: var(--pumpkin); color: #fff; }
+  .map-style-btn.active { background: var(--safety); color: #fff; }
   /* home marker (plum diamond) and numbered route-stop pins, drawn as Leaflet divIcons */
   .pin-home {
     width: 22px; height: 22px;
@@ -249,43 +257,39 @@
   }
   .pin-stop {
     width: 30px; height: 30px;
-    background: var(--pumpkin);
+    background: var(--safety);
     border-radius: 50%;
     border: 2.5px solid #fff;
-    box-shadow: 0 0 0 1.5px var(--pumpkin), 0 2px 6px rgba(0,0,0,0.35);
+    box-shadow: 0 0 0 1.5px var(--safety), 0 2px 6px rgba(0,0,0,0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    font-weight: 700;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     color: #fff;
   }
   .leaflet-popup-content-wrapper {
     background: var(--surface);
     color: var(--ink);
-    border-radius: 10px;
+    border-radius: 7px;
   }
   .leaflet-popup-tip { background: var(--surface); }
   .leaflet-popup-content { font-family: 'Work Sans', Arial, sans-serif; font-size: 13px; margin: 10px 12px; }
-  .leaflet-popup-content b { font-family: 'Fraunces', Georgia, serif; }
   .leaflet-control-attribution { font-size: 10px; }
   .leg-home {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--plum);
-    font-weight: 500;
+    font-weight: 600;
     padding: 0 0 10px 15px;
   }
 
   .section-label {
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--ink-soft);
     margin: 0 0 10px;
   }
@@ -300,11 +304,11 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--pumpkin);
+    background: var(--safety);
     color: #fff;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -320,18 +324,16 @@
     gap: 4px;
     background: var(--surface);
     border: 1.5px solid var(--border);
-    border-radius: 14px;
+    border-radius: 9px;
     padding: 13px 16px;
-    box-shadow: var(--shadow);
   }
-  .stop-card:focus-visible { outline: 2.5px solid var(--pumpkin); outline-offset: 1px; }
+  .stop-card:focus-visible { outline: 2.5px solid var(--safety); outline-offset: 1px; }
   .stop-name { font-weight: 700; font-size: 15.5px; }
   .stop-sub { font-size: 13px; color: var(--ink-soft); }
   .stop-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--plum);
-    font-weight: 500;
+    font-weight: 600;
   }
   .stop-detail {
     margin-top: 6px;
@@ -343,13 +345,11 @@
   }
   .stop-detail .tag {
     display: inline-block;
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: var(--pumpkin-soft);
-    color: var(--pumpkin);
-    border-radius: 999px;
+    background: var(--safety-soft);
+    color: var(--safety-deep);
+    border-radius: 5px;
     padding: 2px 8px;
     margin-bottom: 6px;
   }
@@ -359,8 +359,7 @@
     align-items: center;
     gap: 10px;
     padding: 6px 0 6px 15px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--ink-soft);
   }
   .leg::before {
@@ -389,12 +388,12 @@
     line-height: 1.6;
   }
   footer strong { color: var(--ink); }
-  footer a { color: var(--pumpkin); text-decoration: none; font-weight: 600; }
+  footer a { color: var(--safety-deep); text-decoration: none; font-weight: 600; }
 
   @media (max-width: 480px) {
     .stats { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
     .stat { padding: 10px 10px; }
-    .stat .n { font-size: 19px; }
+    .stat .n { font-size: 20px; }
   }
 </style>
 </head>
@@ -402,8 +401,8 @@
 
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow">NYC DOT &middot; Trick-or-Streets 2026</p>
-    <h1>Plan your walking route</h1>
+    <div class="sign-plate"><h1>Trick-or-Streets</h1></div>
+    <p class="tagline">NYC DOT closes these streets to cars every Halloween. Pick a night and find a route you can actually walk.</p>
     <div class="pickers">
       <div class="picker">
         <label for="dateSel">Night</label>
@@ -430,7 +429,7 @@
       <button class="map-style-btn" type="button" data-style="standard">Standard</button>
       <button class="map-style-btn" type="button" data-style="dark">Dark</button>
     </div>
-    <p class="maplabel">Tap the map to move your starting point &middot; scroll or pinch to zoom &middot; grey dots are outside your radius</p>
+    <p class="maplabel">Tap the map to move your starting point, or drag the purple pin. Scroll or pinch to zoom. Purple dots sit outside your walk radius.</p>
   </div>
 
   <p class="section-label">Walking order from your start point</p>
@@ -513,7 +512,7 @@
     const opt = document.createElement('option');
     opt.value = ds;
     const label = shortDate(dateGroups[ds][0].date);
-    opt.textContent = `${label} · ${dateGroups[ds].length} event${dateGroups[ds].length === 1 ? '' : 's'}`;
+    opt.textContent = `${label} (${dateGroups[ds].length} event${dateGroups[ds].length === 1 ? '' : 's'})`;
     dateSel.appendChild(opt);
   });
   // default to the date with the most events (Halloween night itself)
@@ -531,7 +530,7 @@
     boroughs.forEach(b => {
       const opt = document.createElement('option');
       opt.value = b;
-      opt.textContent = `${b} · ${counts[b]}`;
+      opt.textContent = `${b} (${counts[b]})`;
       boroSel.appendChild(opt);
     });
     if (boroughs.includes(prev)) boroSel.value = prev;
@@ -664,7 +663,7 @@
 
     if (!allRows.length) return;
 
-    const colPumpkin = colorToken('--pumpkin');
+    const colSafety = colorToken('--safety');
     const colPlum = colorToken('--plum');
     const colRoute = colorToken('--route-line');
     const colBorder = colorToken('--border');
@@ -684,8 +683,8 @@
     // walk-radius circle around the home point (radius is in meters for Leaflet)
     radiusCircleLayer = L.circle([homePoint.lat, homePoint.lon], {
       radius: radius * 1609.34,
-      color: colPumpkin, weight: 1.5, dashArray: '4,4',
-      fillColor: colPumpkin, fillOpacity: 0.08
+      color: colSafety, weight: 1.5, dashArray: '4,4',
+      fillColor: colSafety, fillOpacity: 0.08
     }).addTo(map);
 
     // route line, home -> stop 1 -> stop 2 -> ...
