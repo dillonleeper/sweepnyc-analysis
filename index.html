@@ -209,7 +209,9 @@
     padding: 14px 14px 10px;
     margin-bottom: 22px;
   }
-  .mapcard { position: relative; }
+  /* z-index:0 here (with position:relative above) gives the map its own stacking context, so
+     Leaflet's internal panes (z-index up to ~700) can never climb above the sticky header below */
+  .mapcard { position: relative; z-index: 0; }
   .mapcard #map {
     width: 100%;
     height: 380px;
@@ -426,7 +428,6 @@
     <div id="map" role="img" aria-label="Map of nearby stops around your starting point"></div>
     <div class="map-styles" id="mapStyles">
       <button class="map-style-btn" type="button" data-style="minimal">Minimal</button>
-      <button class="map-style-btn" type="button" data-style="standard">Standard</button>
       <button class="map-style-btn" type="button" data-style="dark">Dark</button>
     </div>
     <p class="maplabel">The highlighted blocks are the actual closed-off streets. Tap the map to move your starting point, or drag the purple pin. Purple blocks and dots sit outside your walk radius.</p>
@@ -679,7 +680,6 @@
   // Esri's "World Gray Canvas" basemaps: free, no API key or signup, built for exactly this
   // (muted backdrop so data markers pop) — each is a base fill layer plus a thin labels/roads layer.
   const ESRI_ATTR = 'Esri, HERE, Garmin, FAO, NOAA, USGS &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
-  const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
   function esriCanvas(variant) {
     return L.layerGroup([
       L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${variant}_Gray_Base/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, attribution: ESRI_ATTR }),
@@ -689,8 +689,6 @@
   const BASEMAPS = {
     // light, low-color basemap: fewer competing colors so the orange route pins pop
     minimal: esriCanvas('Light'),
-    // full-color OpenStreetMap, for people who want street names & landmarks at a glance
-    standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM_ATTR }),
     dark: esriCanvas('Dark')
   };
   let currentBasemap = 'minimal';
