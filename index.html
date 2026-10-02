@@ -214,25 +214,51 @@
     text-align: center;
     margin-top: 6px;
   }
+  .map-styles {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 1000;
+    display: flex;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .map-style-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 7px 11px;
+    font-family: 'Work Sans', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--border);
+  }
+  .map-style-btn:last-child { border-right: none; }
+  .map-style-btn.active { background: var(--pumpkin); color: #fff; }
   /* home marker (plum diamond) and numbered route-stop pins, drawn as Leaflet divIcons */
   .pin-home {
-    width: 18px; height: 18px;
+    width: 22px; height: 22px;
     background: var(--plum);
     transform: rotate(45deg);
-    border-radius: 3px;
-    box-shadow: 0 0 0 2px var(--surface), var(--shadow);
+    border-radius: 4px;
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1.5px var(--plum), 0 2px 6px rgba(0,0,0,0.35);
   }
   .pin-stop {
-    width: 24px; height: 24px;
+    width: 30px; height: 30px;
     background: var(--pumpkin);
     border-radius: 50%;
-    box-shadow: 0 0 0 2px var(--surface), var(--shadow);
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1.5px var(--pumpkin), 0 2px 6px rgba(0,0,0,0.35);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 700;
     color: #fff;
   }
   .leaflet-popup-content-wrapper {
@@ -399,6 +425,11 @@
 
   <div class="mapcard">
     <div id="map" role="img" aria-label="Map of nearby stops around your starting point"></div>
+    <div class="map-styles" id="mapStyles">
+      <button class="map-style-btn" type="button" data-style="minimal">Minimal</button>
+      <button class="map-style-btn" type="button" data-style="standard">Standard</button>
+      <button class="map-style-btn" type="button" data-style="dark">Dark</button>
+    </div>
     <p class="maplabel">Tap the map to move your starting point &middot; scroll or pinch to zoom &middot; grey dots are outside your radius</p>
   </div>
 
@@ -577,13 +608,41 @@
     renderMap(allRows, route, radius);
   }
 
-  // ---- real street map via Leaflet + OpenStreetMap tiles ----
+  // ---- real street map via Leaflet, with a few swappable basemap styles ----
   const map = L.map('map', { attributionControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-  }).addTo(map);
   map.setView([40.7128, -74.006], 12);
+
+  const CARTO_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+  const BASEMAPS = {
+    // light, low-color CARTO basemap: fewer competing colors so the orange route pins pop
+    minimal: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20, subdomains: 'abcd', attribution: CARTO_ATTR
+    }),
+    // full-color OpenStreetMap, for people who want street names & landmarks at a glance
+    standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+    }),
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20, subdomains: 'abcd', attribution: CARTO_ATTR
+    })
+  };
+  let currentBasemap = 'minimal';
+  BASEMAPS[currentBasemap].addTo(map);
+
+  const mapStylesEl = document.getElementById('mapStyles');
+  function setBasemap(style) {
+    if (style === currentBasemap || !BASEMAPS[style]) return;
+    map.removeLayer(BASEMAPS[currentBasemap]);
+    currentBasemap = style;
+    BASEMAPS[currentBasemap].addTo(map);
+    mapStylesEl.querySelectorAll('.map-style-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.style === style);
+    });
+  }
+  mapStylesEl.querySelectorAll('.map-style-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.style === currentBasemap);
+    b.addEventListener('click', () => setBasemap(b.dataset.style));
+  });
 
   let homeMarker = null, radiusCircleLayer = null, routeLine = null;
   let stopMarkers = [];
@@ -610,10 +669,11 @@
     const routeIds = new Set(route.map(r => r.name + r.on + r.lat));
     const idOf = r => r.name + r.on + r.lat;
 
-    // stops outside the walk radius: small muted markers, for context
+    // stops outside the walk radius: small muted markers, for context — white halo so they
+    // read clearly against any basemap, not just the plain grey they'd be lost in otherwise
     allRows.filter(r => !routeIds.has(idOf(r))).forEach(r => {
       const m = L.circleMarker([r.lat, r.lon], {
-        radius: 5, color: colBorder, weight: 1, fillColor: colBorder, fillOpacity: 0.9
+        radius: 6, color: '#fff', weight: 2, fillColor: colPlum, fillOpacity: 0.55
       }).bindPopup(`<b>${escapeHtml(r.name)}</b><br>${escapeHtml(r.on)}`).addTo(map);
       stopMarkers.push(m);
     });
@@ -635,7 +695,7 @@
 
     // home marker (diamond divIcon)
     homeMarker = L.marker([homePoint.lat, homePoint.lon], {
-      icon: L.divIcon({ className: 'pin-home', iconSize: [18, 18], iconAnchor: [9, 9] }),
+      icon: L.divIcon({ className: 'pin-home', iconSize: [22, 22], iconAnchor: [11, 11] }),
       draggable: true,
       title: 'Your starting point — drag to move'
     }).addTo(map);
@@ -649,7 +709,7 @@
     route.forEach((r, i) => {
       const m = L.marker([r.lat, r.lon], {
         icon: L.divIcon({
-          className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+          className: '', iconSize: [30, 30], iconAnchor: [15, 15],
           html: `<div class="pin-stop">${i + 1}</div>`
         })
       }).bindPopup(`<b>${escapeHtml(r.name)}</b><br>${escapeHtml(r.on)}<br>${r.start} &ndash; ${r.end}`).addTo(map);
