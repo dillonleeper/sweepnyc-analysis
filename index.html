@@ -270,10 +270,6 @@
     font-size: 14px;
     font-weight: 600;
     color: #fff;
-    cursor: pointer;
-  }
-  .pin-stop--start {
-    box-shadow: 0 0 0 3.5px var(--plum), 0 2px 8px rgba(0,0,0,0.45);
   }
   .leaflet-popup-content-wrapper {
     background: var(--surface);
@@ -359,31 +355,6 @@
     padding: 2px 8px;
     margin-bottom: 6px;
   }
-  .start-here-btn {
-    all: unset;
-    cursor: pointer;
-    flex: none;
-    align-self: center;
-    font-family: 'Work Sans', Arial, sans-serif;
-    font-size: 11.5px;
-    font-weight: 700;
-    text-align: center;
-    color: var(--safety-deep);
-    border: 1.5px solid var(--safety);
-    border-radius: 6px;
-    padding: 7px 10px;
-    white-space: nowrap;
-  }
-  .start-here-btn:hover { background: var(--safety-soft); }
-  .start-here-btn.is-start { background: var(--safety); color: #fff; }
-  #startNote { display: block; margin-top: 6px; }
-  #clearStartBtn {
-    all: unset;
-    cursor: pointer;
-    color: var(--safety-deep);
-    font-weight: 700;
-    text-decoration: underline;
-  }
 
   .leg {
     display: flex;
@@ -425,7 +396,6 @@
     .stats { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
     .stat { padding: 10px 10px; }
     .stat .n { font-size: 20px; }
-    .start-here-btn { font-size: 10.5px; padding: 6px 8px; }
   }
 </style>
 </head>
@@ -460,15 +430,15 @@
       <button class="map-style-btn" type="button" data-style="minimal">Minimal</button>
       <button class="map-style-btn" type="button" data-style="dark">Dark</button>
     </div>
-    <p class="maplabel">The highlighted blocks are the actual closed-off streets. Tap the map (or drag the purple pin) to move your search center &mdash; tap any orange stop, or its "Start here" button in the list below, to begin your route there instead. Purple blocks and dots sit outside your walk radius. <span id="startNote"></span></p>
+    <p class="maplabel">The highlighted blocks are the actual closed-off streets. Tap an empty spot on the map to move your search area &mdash; then drag the purple pin anywhere you actually want to start, even a few blocks off an event, without losing stops from your walk radius. Purple blocks and dots sit outside that radius.</p>
   </div>
 
   <p class="section-label">Walking order from your start point</p>
   <div class="stoplist" id="stoplist"></div>
-  <div class="empty" id="emptyMsg" hidden>Nothing within walking radius here. Widen the radius or move your start point.</div>
+  <div class="empty" id="emptyMsg" hidden>Nothing within walking radius here. Widen the radius or tap a new search area on the map.</div>
 
   <footer>
-    <strong>How this route is built:</strong> every location and street segment comes straight from NYC DOT's own Trick-or-Streets map data (two separate data layers DOT publishes: one with each event's exact location, one with the actual closed-off block). Tap the map or drag the pin to set the center of your search, and only the stops inside your walk radius get routed; tap any stop to make it your actual starting point instead, without moving that search circle. For 8 stops or fewer the route is checked against every possible order and the shortest one wins; past that it's optimized with repeated local improvements, since checking every order gets too slow. Distances are still straight-line between event centers, not actual sidewalk distance, so treat the mileage as a floor, not a promise. Tap any stop for its exact cross streets, hours, and host &mdash; hours are also shown on every map pin and dot. Source: <a href="https://www.nyc.gov/trickorstreets" target="_blank" rel="noopener">nyc.gov/trickorstreets</a>.
+    <strong>How this route is built:</strong> every location and street segment comes straight from NYC DOT's own Trick-or-Streets map data (two separate data layers DOT publishes: one with each event's exact location, one with the actual closed-off block). Tapping the map sets both your search area and your starting pin together; after that, dragging the pin only changes where the route begins &mdash; the set of stops inside your walk radius stays fixed. For 8 stops or fewer the route is checked against every possible order and the shortest one wins; past that it's optimized with repeated local improvements, since checking every order gets too slow. Distances are still straight-line between event centers, not actual sidewalk distance, so treat the mileage as a floor, not a promise. Tap any stop for its exact cross streets, hours, and host &mdash; hours are also shown on every map pin and dot. Source: <a href="https://www.nyc.gov/trickorstreets" target="_blank" rel="noopener">nyc.gov/trickorstreets</a>.
   </footer>
 </div>
 
@@ -592,8 +562,8 @@
     return { lat, lon };
   }
 
-  // stable identity for a stop record, used to remember which one the person picked as their
-  // actual starting point without needing to compare object references across re-renders
+  // stable identity for a stop record, used to tell two record objects apart without relying on
+  // reference equality across re-renders
   function stopKey(r) { return r.name + '|' + r.on + '|' + r.lat; }
 
   // ---- build date & borough options ----
@@ -604,11 +574,13 @@
   const statsEl = document.getElementById('stats');
   const stoplistEl = document.getElementById('stoplist');
   const emptyEl = document.getElementById('emptyMsg');
-  const startNoteEl = document.getElementById('startNote');
-  let homePoint = null;   // {lat, lon} — anchors the walk-radius circle; set by clicking/dragging on the map
-  let routeStartKey = null; // stopKey() of a stop the person tapped to begin their route from, or null
-                             // to just start from homePoint (keeps "which stops are nearby" separate from
-                             // "where the walking route itself begins")
+  // homePoint anchors the walk-radius circle (which stops count as "nearby"); startPoint is the
+  // actual beginning of the walking route. They start out equal, but dragging the purple pin only
+  // ever moves startPoint — the search circle stays put, so you can drag the pin anywhere, even a
+  // few blocks off an event, without losing stops that were in range a moment ago. Clicking an
+  // empty spot on the map re-anchors both at once, for a fresh search.
+  let homePoint = null;
+  let startPoint = null;
   let userMovedView = false; // true once the person has panned/zoomed by hand, so render() stops re-fitting the view
 
   const dateGroups = {};
@@ -659,21 +631,15 @@
     if (!homePoint || !allRows.length) {
       homePoint = allRows.length ? centroid(allRows) : { lat: 40.7128, lon: -74.006 };
     }
+    if (!startPoint) startPoint = homePoint;
 
-    // which stops fall inside the walk radius is always decided from homePoint (the pin), so
-    // picking a different starting stop below never shifts that set
+    // which stops count as "nearby" is always decided from homePoint, so dragging the start pin
+    // around never shrinks or grows that set — only the walking order changes
     const nearby = allRows.filter(r => haversineMiles(homePoint.lat, homePoint.lon, r.lat, r.lon) <= radius);
-
-    // if the person tapped a stop to start from, route everyone else from there instead of from
-    // the pin — the chosen stop is always placed first, and the rest are ordered optimally from it
-    const startStop = routeStartKey ? nearby.find(r => stopKey(r) === routeStartKey) || null : null;
-    const route = startStop
-      ? [startStop, ...bestRoute(nearby.filter(r => r !== startStop), startStop)]
-      : bestRoute(nearby, homePoint);
-    const routeOrigin = startStop || homePoint;
+    const route = bestRoute(nearby, startPoint);
 
     // stats
-    const totalMiles = routeDistance(route, routeOrigin);
+    const totalMiles = routeDistance(route, startPoint);
     const walkMinutes = Math.round(totalMiles / 3 * 60);
     statsEl.innerHTML = `
       <div class="stat"><div class="n">${route.length}</div><div class="l">Stops nearby</div></div>
@@ -685,14 +651,11 @@
     stoplistEl.innerHTML = '';
     emptyEl.hidden = route.length > 0;
     route.forEach((r, i) => {
-      const isChosenStart = !!(startStop && i === 0);
-      const prevPoint = i === 0 ? routeOrigin : route[i-1];
+      const prevPoint = i === 0 ? startPoint : route[i-1];
       const d = haversineMiles(prevPoint.lat, prevPoint.lon, r.lat, r.lon);
       const legDiv = document.createElement('div');
       legDiv.className = i === 0 ? 'leg-home' : 'leg';
-      legDiv.textContent = i === 0
-        ? (isChosenStart ? 'Your chosen starting point' : `${d.toFixed(2)} mi from your start point`)
-        : `${d.toFixed(2)} mi to next stop`;
+      legDiv.textContent = i === 0 ? `${d.toFixed(2)} mi from your start point` : `${d.toFixed(2)} mi to next stop`;
       stoplistEl.appendChild(legDiv);
 
       const wrap = document.createElement('div');
@@ -709,15 +672,8 @@
             Hosted by ${escapeHtml(r.partner)}.
           </div>
         </button>
-        <button class="start-here-btn${isChosenStart ? ' is-start' : ''}" type="button">${isChosenStart ? 'Starting point' : 'Start here'}</button>
       `;
       stoplistEl.appendChild(wrap);
-
-      wrap.querySelector('.start-here-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        routeStartKey = isChosenStart ? null : stopKey(r);
-        render();
-      });
     });
 
     stoplistEl.querySelectorAll('.stop-card').forEach(card => {
@@ -727,23 +683,8 @@
       });
     });
 
-    if (startStop) {
-      startNoteEl.innerHTML = `Starting from <strong>${escapeHtml(startStop.name)}</strong> &mdash; <button id="clearStartBtn" type="button">use the pin instead</button>.`;
-    } else {
-      startNoteEl.textContent = '';
-    }
-
-    renderMap(allRows, route, radius, startStop);
+    renderMap(allRows, route, radius);
   }
-
-  // clicking the "use the pin instead" link clears the chosen start (delegated since the link is
-  // re-created on every render)
-  startNoteEl.addEventListener('click', (e) => {
-    if (e.target && e.target.id === 'clearStartBtn') {
-      routeStartKey = null;
-      render();
-    }
-  });
 
   // ---- real street map via Leaflet, with a few swappable basemap styles ----
   const map = L.map('map', { attributionControl: true });
@@ -789,7 +730,7 @@
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
-  function renderMap(allRows, route, radius, startStop) {
+  function renderMap(allRows, route, radius) {
     // clear previous layers
     if (homeMarker) { map.removeLayer(homeMarker); homeMarker = null; }
     if (radiusCircleLayer) { map.removeLayer(radiusCircleLayer); radiusCircleLayer = null; }
@@ -836,57 +777,51 @@
       stopMarkers.push(m);
     });
 
-    // walk-radius circle around the home point (radius is in meters for Leaflet)
+    // walk-radius circle — always centered on homePoint, never on the draggable start pin, so it
+    // doesn't shrink or jump around just because you moved where you're starting from
     radiusCircleLayer = L.circle([homePoint.lat, homePoint.lon], {
       radius: radius * 1609.34,
       color: colSafety, weight: 1.5, dashArray: '4,4',
       fillColor: colSafety, fillOpacity: 0.08
     }).addTo(map);
 
-    // route line, home -> stop 1 -> stop 2 -> ...
-    const latlngs = [[homePoint.lat, homePoint.lon]].concat(route.map(r => [r.lat, r.lon]));
+    // route line, start point -> stop 1 -> stop 2 -> ... in the actual walking order
+    const latlngs = [[startPoint.lat, startPoint.lon]].concat(route.map(r => [r.lat, r.lon]));
     if (latlngs.length > 1) {
       routeLine = L.polyline(latlngs, {
         color: colRoute, weight: 3, dashArray: '1,8', lineCap: 'round'
       }).addTo(map);
     }
 
-    // home marker (diamond divIcon) — this is the center of the walk-radius circle, not
-    // necessarily where the route itself starts (tap a stop pin for that)
-    homeMarker = L.marker([homePoint.lat, homePoint.lon], {
+    // the draggable start pin (diamond divIcon) — drag it anywhere, on a stop or a few blocks
+    // off, to change where the route begins; the search circle above doesn't move with it
+    homeMarker = L.marker([startPoint.lat, startPoint.lon], {
       icon: L.divIcon({ className: 'pin-home', iconSize: [22, 22], iconAnchor: [11, 11] }),
       draggable: true,
-      title: 'Center of your walk radius — drag to move'
+      title: 'Your starting point — drag anywhere, even a few blocks away'
     }).addTo(map);
     homeMarker.on('dragend', () => {
       const ll = homeMarker.getLatLng();
-      homePoint = { lat: ll.lat, lon: ll.lng };
-      routeStartKey = null;
+      startPoint = { lat: ll.lat, lon: ll.lng };
       render();
     });
 
-    // numbered stops in the route — tap any pin to make it your actual starting point without
-    // moving the walk-radius circle; tap the chosen one again to go back to starting from the pin
+    // numbered stops in the walking route
     route.forEach((r, i) => {
-      const isChosenStart = !!(startStop && i === 0);
-      const key = stopKey(r);
       const m = L.marker([r.lat, r.lon], {
         icon: L.divIcon({
           className: '', iconSize: [30, 30], iconAnchor: [15, 15],
-          html: `<div class="pin-stop${isChosenStart ? ' pin-stop--start' : ''}">${i + 1}</div>`
+          html: `<div class="pin-stop">${i + 1}</div>`
         })
-      }).bindPopup(`<b>${escapeHtml(r.name)}</b><br>${escapeHtml(r.on)}<br>${r.start} &ndash; ${r.end}<br><em>${isChosenStart ? 'Your starting point — tap again to unset' : 'Tap to start your route here'}</em>`).addTo(map);
-      m.on('click', () => {
-        routeStartKey = isChosenStart ? null : key;
-        render();
-      });
+      }).bindPopup(`<b>${escapeHtml(r.name)}</b><br>${escapeHtml(r.on)}<br>${r.start} &ndash; ${r.end}`).addTo(map);
       stopMarkers.push(m);
     });
 
-    // keep the view centered on the home point; only auto-fit the zoom level once per
+    // keep the view fitted to everything in play; only auto-fit the zoom level once per
     // date/borough change (userMovedView tracks whether the person has since panned/zoomed by hand)
     if (!userMovedView) {
-      const bounds = L.latLngBounds(latlngs.length ? latlngs : [[homePoint.lat, homePoint.lon]]);
+      const bounds = L.latLngBounds(latlngs.length ? latlngs : [[startPoint.lat, startPoint.lon]]);
+      bounds.extend([homePoint.lat, homePoint.lon]);
       allRows.forEach(r => bounds.extend([r.lat, r.lon]));
       map.fitBounds(bounds, { padding: [28, 28], maxZoom: 17 });
     }
@@ -894,14 +829,14 @@
 
   function handleMapClick(evt) {
     homePoint = { lat: evt.latlng.lat, lon: evt.latlng.lng };
-    routeStartKey = null;
+    startPoint = homePoint;
     render();
   }
 
   map.on('click', handleMapClick);
   map.on('zoomend dragend', () => { userMovedView = true; });
-  dateSel.addEventListener('change', () => { homePoint = null; routeStartKey = null; userMovedView = false; populateBoroughs(); render(); });
-  boroSel.addEventListener('change', () => { homePoint = null; routeStartKey = null; userMovedView = false; render(); });
+  dateSel.addEventListener('change', () => { homePoint = null; startPoint = null; userMovedView = false; populateBoroughs(); render(); });
+  boroSel.addEventListener('change', () => { homePoint = null; startPoint = null; userMovedView = false; render(); });
   radiusSel.addEventListener('input', render);
 
   populateBoroughs();
