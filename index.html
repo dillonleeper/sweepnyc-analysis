@@ -612,19 +612,22 @@
   const map = L.map('map', { attributionControl: true });
   map.setView([40.7128, -74.006], 12);
 
-  const CARTO_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+  // Esri's "World Gray Canvas" basemaps: free, no API key or signup, built for exactly this
+  // (muted backdrop so data markers pop) — each is a base fill layer plus a thin labels/roads layer.
+  const ESRI_ATTR = 'Esri, HERE, Garmin, FAO, NOAA, USGS &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  function esriCanvas(variant) {
+    return L.layerGroup([
+      L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${variant}_Gray_Base/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, attribution: ESRI_ATTR }),
+      L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${variant}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16 })
+    ]);
+  }
   const BASEMAPS = {
-    // light, low-color CARTO basemap: fewer competing colors so the orange route pins pop
-    minimal: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 20, subdomains: 'abcd', attribution: CARTO_ATTR
-    }),
+    // light, low-color basemap: fewer competing colors so the orange route pins pop
+    minimal: esriCanvas('Light'),
     // full-color OpenStreetMap, for people who want street names & landmarks at a glance
-    standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-    }),
-    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 20, subdomains: 'abcd', attribution: CARTO_ATTR
-    })
+    standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM_ATTR }),
+    dark: esriCanvas('Dark')
   };
   let currentBasemap = 'minimal';
   BASEMAPS[currentBasemap].addTo(map);
